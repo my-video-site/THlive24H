@@ -92,6 +92,78 @@ function buildPublicFileUrl(req, filename) {
   return `${req.protocol}://${req.get('host')}/uploads/${filename}`;
 }
 
+function getBaseUrl(req) {
+  return String(process.env.SITE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/+$/, '');
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function buildVideoPageUrl(req, videoId) {
+  return `${getBaseUrl(req)}/watch/${encodeURIComponent(videoId)}`;
+}
+
+function buildVideoSeo(video, req) {
+  const title = `${String(video.title || 'ดูคลิป').trim()} | THlive24H`;
+  const description = `ดูคลิป ${String(video.title || '').trim()} บน THlive24H พร้อมหน้าเล่นคลิปที่เปิดง่ายบนมือถือและเดสก์ท็อป`;
+  const canonical = buildVideoPageUrl(req, video.id);
+  const image = String(video.thumbnail || `${getBaseUrl(req)}/favicon.ico`).trim();
+
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: String(video.title || 'THlive24H'),
+    description,
+    thumbnailUrl: image ? [image] : [],
+    uploadDate: new Date(video.createdAt || Date.now()).toISOString(),
+    embedUrl: video.embedUrl || canonical,
+    contentUrl: video.url || video.embedUrl || canonical,
+    url: canonical,
+    publisher: {
+      '@type': 'Organization',
+      name: 'THlive24H'
+    }
+  };
+
+  return {
+    title,
+    description,
+    canonical,
+    image,
+    structuredData: JSON.stringify(structuredData)
+  };
+}
+
+function injectVideoSeo(html, seo) {
+  const metaBlock = `
+    <title>${escapeHtml(seo.title)}</title>
+    <meta name="description" content="${escapeHtml(seo.description)}" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <link rel="canonical" href="${escapeHtml(seo.canonical)}" />
+    <meta property="og:type" content="video.other" />
+    <meta property="og:title" content="${escapeHtml(seo.title)}" />
+    <meta property="og:description" content="${escapeHtml(seo.description)}" />
+    <meta property="og:url" content="${escapeHtml(seo.canonical)}" />
+    <meta property="og:image" content="${escapeHtml(seo.image)}" />
+    <meta property="og:site_name" content="THlive24H" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${escapeHtml(seo.title)}" />
+    <meta name="twitter:description" content="${escapeHtml(seo.description)}" />
+    <meta name="twitter:image" content="${escapeHtml(seo.image)}" />
+    <script type="application/ld+json">${seo.structuredData}</script>
+  `;
+
+  return html
+    .replace(/<title>[\s\S]*?<\/title>/i, metaBlock)
+    .replace('<body data-page="video">', `<body data-page="video" data-video-id="${escapeHtml(seo.canonical.split('/').pop())}">`);
+}
+
 function resolveUploadedFilePath(fileUrl) {
   const value = String(fileUrl || '').trim();
   if (!value) return null;
@@ -475,6 +547,91 @@ app.get('/analytics', requireAuth, async (req, res) => {
     totalAds: ads.length,
     recentEvents: logs.events.slice(0, 12)
   });
+});
+
+app.get('/robots.txt', (req, res) => {
+  const baseUrl = getBaseUrl(req);
+  res.type('text/plain');
+  res.send(`User-agent: *\nAllow: /\nSitemap: ${baseUrl}/sitemap.xml\n`);
+});
+
+app.get('/sitemap.xml', async (req, res) => {
+  const baseUrl = getBaseUrl(req);
+  const videos = await readJson(FILES.videos);
+  const urls = [
+    {
+      loc: `${baseUrl}/`,
+      changefreq: 'daily',
+      priority: '1.0',
+      lastmod: new Date().toISOString()
+    },
+    ...videos.slice(0, 500).map((video) => ({
+      loc: buildVideoPageUrl(req, video.id),
+      changefreq: 'daily',
+      priority: '0.8',
+      lastmod: new Date(video.updatedAt || video.createdAt || Date.now()).toISOString()
+    }))
+  ];
+
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls
+  .map(
+    (item) => `  <url>
+    <loc>${item.loc}</loc>
+    <lastmod>${item.lastmod}</lastmod>
+    <changefreq>${item.changefreq}</changefreq>
+    <priority>${item.priority}</priority>
+  </url>`
+  )
+  .join('\n')}
+</urlset>`;
+
+  res.type('application/xml');
+  res.send(body);
+});
+
+app.get('/feed.xml', async (req, res) => {
+  const videos = await readJson(FILES.videos);
+  const baseUrl = getBaseUrl(req);
+  const items = videos.slice(0, 50).map((video) => {
+    const url = buildVideoPageUrl(req, video.id);
+    const title = escapeHtml(video.title || 'THlive24H');
+    const description = escapeHtml(`ดูคลิป ${video.title || ''} บน THlive24H`);
+    const pubDate = new Date(video.updatedAt || video.createdAt || Date.now()).toUTCString();
+    return `
+      <item>
+        <title>${title}</title>
+        <link>${url}</link>
+        <guid>${url}</guid>
+        <pubDate>${pubDate}</pubDate>
+        <description>${description}</description>
+      </item>`;
+  });
+
+  res.type('application/xml');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>THlive24H</title>
+    <link>${baseUrl}/</link>
+    <description>อัปเดตคลิปล่าสุดจาก THlive24H</description>
+    ${items.join('\n')}
+  </channel>
+</rss>`);
+});
+
+app.get('/watch/:id', async (req, res) => {
+  const videos = await readJson(FILES.videos);
+  const video = videos.find((item) => item.id === req.params.id);
+  if (!video) {
+    return res.status(404).sendFile(path.join(PUBLIC_DIR, 'index.html'));
+  }
+
+  const template = await fs.readFile(path.join(PUBLIC_DIR, 'video.html'), 'utf8');
+  const seo = buildVideoSeo(video, req);
+  const html = injectVideoSeo(template, seo);
+  return res.type('html').send(html);
 });
 
 app.post('/admin/run-autoscraper', requireAuth, async (req, res) => {

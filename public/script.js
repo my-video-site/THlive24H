@@ -153,7 +153,7 @@ function buildVideoCard(template, video) {
   const node = template.content.cloneNode(true);
   const image = node.querySelector('[data-video-image]');
 
-  node.querySelector('[data-video-link]').href = `/video.html?id=${encodeURIComponent(video.id)}`;
+  node.querySelector('[data-video-link]').href = `/watch/${encodeURIComponent(video.id)}`;
   image.src = buildThumbnailUrl(video);
   image.alt = video.title;
   image.loading = 'lazy';
@@ -195,13 +195,14 @@ function renderCardList(container, template, items, emptyText) {
 }
 
 if (page === 'index') {
+  const indexParams = new URLSearchParams(window.location.search);
   const state = {
     page: 1,
     limit: 40,
     loading: false,
-    query: '',
-    source: '',
-    category: '',
+    query: indexParams.get('q') || '',
+    source: indexParams.get('source') || '',
+    category: indexParams.get('category') || '',
     loaded: [],
     total: 0,
     totalPages: 1,
@@ -222,6 +223,9 @@ if (page === 'index') {
   const categoryFilter = document.getElementById('category-filter');
   const searchInput = document.getElementById('search-input');
   const slotRenderer = createSlotRenderer();
+
+  searchInput.value = state.query;
+  sourceFilter.value = state.source;
 
   function renderStats(items) {
     const categories = new Set(items.map((item) => item.category || 'ทั่วไป')).size;
@@ -417,7 +421,10 @@ if (page === 'index') {
 
 if (page === 'video') {
   const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
+  const pathId = window.location.pathname.startsWith('/watch/')
+    ? decodeURIComponent(window.location.pathname.slice('/watch/'.length))
+    : '';
+  const id = params.get('id') || pathId;
   const slotRenderer = createSlotRenderer();
   let artplayerInstance = null;
 
@@ -505,6 +512,7 @@ if (page === 'video') {
     } else {
       elements.sourceLinkWrap.classList.add('hidden');
     }
+    elements.note.textContent = 'ถ้าเบราว์เซอร์มือถือเล่นผ่านหน้า embed ไม่ได้ ให้กดปุ่มเปิดคลิปจากต้นทางด้านล่าง';
     elements.note.textContent = 'ระบบกำลังใช้โหมดดูผ่านหน้า embed อัตโนมัติ';
   }
 
@@ -585,7 +593,7 @@ if (page === 'video') {
     elements.related.innerHTML = items
       .map(
         (item) => `
-          <a class="related-item" href="/video.html?id=${encodeURIComponent(item.id)}">
+          <a class="related-item" href="/watch/${encodeURIComponent(item.id)}">
             <span>${escapeHtml(item.title)}</span>
             <strong>${escapeHtml(item.category || 'ทั่วไป')}</strong>
           </a>
