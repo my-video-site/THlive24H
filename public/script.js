@@ -23,6 +23,23 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+function slugify(value) {
+  return (
+    String(value || 'video')
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80) || 'video'
+  );
+}
+
+function buildWatchUrl(video) {
+  const publicId = encodeURIComponent(String(video?.publicId || video?.videoId || video?.id || '').trim());
+  return `/watch/${publicId}/${slugify(video?.title)}`;
+}
+
 function createPosterPlaceholder(video) {
   const source = String(video?.source || 'VIDEO').toUpperCase();
   const title = String(video?.title || 'THlive24H').trim() || 'THlive24H';
@@ -153,7 +170,7 @@ function buildVideoCard(template, video) {
   const node = template.content.cloneNode(true);
   const image = node.querySelector('[data-video-image]');
 
-  node.querySelector('[data-video-link]').href = `/watch/${encodeURIComponent(video.id)}`;
+  node.querySelector('[data-video-link]').href = buildWatchUrl(video);
   image.src = buildThumbnailUrl(video);
   image.alt = video.title;
   image.loading = 'lazy';
@@ -421,9 +438,8 @@ if (page === 'index') {
 
 if (page === 'video') {
   const params = new URLSearchParams(window.location.search);
-  const pathId = window.location.pathname.startsWith('/watch/')
-    ? decodeURIComponent(window.location.pathname.slice('/watch/'.length))
-    : '';
+  const pathSegments = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
+  const pathId = pathSegments[0] === 'watch' ? decodeURIComponent(pathSegments[1] || '') : '';
   const id = params.get('id') || pathId;
   const slotRenderer = createSlotRenderer();
   let artplayerInstance = null;

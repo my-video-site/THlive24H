@@ -56,7 +56,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitizeInput);
 app.use(rateLimit());
-app.use(express.static(PUBLIC_DIR));
+app.use(express.static(PUBLIC_DIR, { index: false }));
 
 async function readJson(file) {
   const raw = await fs.readFile(file, 'utf8');
@@ -96,6 +96,10 @@ function getBaseUrl(req) {
   return String(process.env.SITE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/+$/, '');
 }
 
+function isDirectVideoUrl(url) {
+  return /\.(mp4|webm|ogg|m3u8)(\?.*)?$/i.test(String(url || '').trim());
+}
+
 function escapeHtml(value) {
   return String(value || '')
     .replace(/&/g, '&amp;')
@@ -105,8 +109,94 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function buildVideoPageUrl(req, videoId) {
-  return `${getBaseUrl(req)}/watch/${encodeURIComponent(videoId)}`;
+function slugify(value) {
+  const slug = String(value || 'video')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+
+  return slug || 'video';
+}
+
+function getPublicVideoId(video) {
+  return String(video?.videoId || video?.id || '').trim();
+}
+
+function buildVideoPageUrl(req, video) {
+  return `${getBaseUrl(req)}/watch/${encodeURIComponent(getPublicVideoId(video))}/${slugify(video?.title)}`;
+}
+
+function resolveSeoImage(req, imageUrl) {
+  const raw = String(imageUrl || '').trim();
+  if (/^https?:\/\//i.test(raw)) {
+    return raw;
+  }
+
+  if (raw.startsWith('/uploads/')) {
+    return `${getBaseUrl(req)}${raw}`;
+  }
+
+  return `${getBaseUrl(req)}/site-social.svg`;
+}
+
+function findVideoIndex(videos, lookupValue) {
+  const needle = String(lookupValue || '').trim();
+  return videos.findIndex(
+    (video) => String(video.id || '').trim() === needle || String(video.videoId || '').trim() === needle
+  );
+}
+
+function buildHomeSeo(videos, req) {
+  const baseUrl = getBaseUrl(req);
+  const image = videos
+    .map((video) => resolveSeoImage(req, video.thumbnail))
+    .find(Boolean) || `${baseUrl}/site-social.svg`;
+  const items = videos.slice(0, 12).map((video, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    url: buildVideoPageUrl(req, video),
+    name: String(video.title || 'THlive24H')
+  }));
+
+  return {
+    image,
+    scripts: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: 'THlive24H',
+        url: `${baseUrl}/`,
+        logo: `${baseUrl}/site-social.svg`
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'THlive24H',
+        url: `${baseUrl}/`,
+        description: 'Browse the latest videos, categories, and featured watch pages on THlive24H.',
+        primaryImageOfPage: image,
+        mainEntity: {
+          '@type': 'ItemList',
+          itemListElement: items
+        }
+      }
+    ]
+  };
+}
+
+function injectHomeSeo(html, seo) {
+  const block = `
+    <meta property="og:image" content="${escapeHtml(seo.image)}" />
+    <meta name="twitter:image" content="${escapeHtml(seo.image)}" />
+    ${seo.scripts
+      .map((item) => `<script type="application/ld+json">${JSON.stringify(item)}</script>`)
+      .join('\n    ')}
+  `;
+
+  return html.replace('</head>', `${block}\n  </head>`);
 }
 
 function buildVideoSeo(video, req) {
@@ -218,8 +308,101 @@ function normalizeVideoRecord(video, index = 0) {
   return {
     ...video,
     category: deriveVideoCategory(video),
-    displayViews: deriveFakeViews(video, index)
+    displayViews: deriveFakeViews(video, index),
+    publicId: getPublicVideoId(video)
   };
+}
+
+function buildVideoSeo(video, req) {
+  const title = `${String(video.title || 'Watch video').trim()} | THlive24H`;
+  const description = `Watch ${String(video.title || 'this video').trim()} on THlive24H. Browse related videos, categories, and the latest updates from the homepage.`;
+  const canonical = buildVideoPageUrl(req, video);
+  const image = resolveSeoImage(req, video.thumbnail);
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: String(video.title || 'THlive24H'),
+    description,
+    thumbnailUrl: [image],
+    uploadDate: new Date(video.createdAt || Date.now()).toISOString(),
+    url: canonical,
+    mainEntityOfPage: canonical,
+    interactionStatistic: {
+      '@type': 'InteractionCounter',
+      interactionType: {
+        '@type': 'WatchAction'
+      },
+      userInteractionCount: Number(video.views || 0)
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'THlive24H',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${getBaseUrl(req)}/site-social.svg`
+      }
+    }
+  };
+
+  if (isDirectVideoUrl(video.url)) {
+    structuredData.contentUrl = video.url;
+  } else if (video.embedUrl) {
+    structuredData.embedUrl = video.embedUrl;
+  }
+
+  const breadcrumbData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${getBaseUrl(req)}/`
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: String(video.title || 'Video'),
+        item: canonical
+      }
+    ]
+  };
+
+  return {
+    title,
+    description,
+    canonical,
+    image,
+    publicId: getPublicVideoId(video),
+    structuredData: JSON.stringify(structuredData),
+    breadcrumbData: JSON.stringify(breadcrumbData)
+  };
+}
+
+function injectVideoSeo(html, seo) {
+  const metaBlock = `
+    <title>${escapeHtml(seo.title)}</title>
+    <meta name="description" content="${escapeHtml(seo.description)}" />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="canonical" href="${escapeHtml(seo.canonical)}" />
+    <meta property="og:type" content="video.other" />
+    <meta property="og:title" content="${escapeHtml(seo.title)}" />
+    <meta property="og:description" content="${escapeHtml(seo.description)}" />
+    <meta property="og:url" content="${escapeHtml(seo.canonical)}" />
+    <meta property="og:image" content="${escapeHtml(seo.image)}" />
+    <meta property="og:site_name" content="THlive24H" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${escapeHtml(seo.title)}" />
+    <meta name="twitter:description" content="${escapeHtml(seo.description)}" />
+    <meta name="twitter:image" content="${escapeHtml(seo.image)}" />
+    <script type="application/ld+json">${seo.structuredData}</script>
+    <script type="application/ld+json">${seo.breadcrumbData}</script>
+  `;
+
+  return html
+    .replace(/<title>[\s\S]*?<\/title>/i, metaBlock)
+    .replace('<body data-page="video">', `<body data-page="video" data-video-id="${escapeHtml(seo.publicId)}">`);
 }
 
 async function updateTopVideos() {
@@ -387,7 +570,7 @@ app.delete('/videos', requireAuth, async (req, res) => {
 app.get('/videos/:id', async (req, res) => {
   const videos = await readJson(FILES.videos);
   const logs = ensureLogsShape(await readJson(FILES.logs));
-  const index = videos.findIndex((video) => video.id === req.params.id);
+  const index = findVideoIndex(videos, req.params.id);
 
   if (index === -1) {
     return res.status(404).json({ error: 'Video not found.' });
@@ -401,7 +584,7 @@ app.get('/videos/:id', async (req, res) => {
   await updateTopVideos();
   await logEvent('video.view', { id: videos[index].id });
 
-  const related = videos.filter((video) => video.id !== req.params.id).slice(0, 6);
+  const related = videos.filter((video) => video.id !== videos[index].id).slice(0, 6);
   return res.json({
     video: normalizeVideoRecord(videos[index], index),
     related: related.map((video, relatedIndex) => normalizeVideoRecord(video, relatedIndex))
@@ -411,7 +594,7 @@ app.get('/videos/:id', async (req, res) => {
 app.post('/videos/:id/click', async (req, res) => {
   const videos = await readJson(FILES.videos);
   const logs = ensureLogsShape(await readJson(FILES.logs));
-  const index = videos.findIndex((video) => video.id === req.params.id);
+  const index = findVideoIndex(videos, req.params.id);
 
   if (index === -1) {
     return res.status(404).json({ error: 'Video not found.' });
@@ -549,6 +732,30 @@ app.get('/analytics', requireAuth, async (req, res) => {
   });
 });
 
+app.get('/', async (req, res) => {
+  const [videos, template] = await Promise.all([
+    readJson(FILES.videos),
+    fs.readFile(path.join(PUBLIC_DIR, 'index.html'), 'utf8')
+  ]);
+  const seo = buildHomeSeo(videos, req);
+  return res.type('html').send(injectHomeSeo(template, seo));
+});
+
+app.get('/video.html', async (req, res, next) => {
+  const lookupId = String(req.query.id || '').trim();
+  if (!lookupId) {
+    return next();
+  }
+
+  const videos = await readJson(FILES.videos);
+  const index = findVideoIndex(videos, lookupId);
+  if (index === -1) {
+    return next();
+  }
+
+  return res.redirect(301, buildVideoPageUrl(req, videos[index]));
+});
+
 app.get('/robots.txt', (req, res) => {
   const baseUrl = getBaseUrl(req);
   res.type('text/plain');
@@ -566,7 +773,7 @@ app.get('/sitemap.xml', async (req, res) => {
       lastmod: new Date().toISOString()
     },
     ...videos.slice(0, 500).map((video) => ({
-      loc: buildVideoPageUrl(req, video.id),
+      loc: buildVideoPageUrl(req, video),
       changefreq: 'daily',
       priority: '0.8',
       lastmod: new Date(video.updatedAt || video.createdAt || Date.now()).toISOString()
@@ -595,7 +802,7 @@ app.get('/feed.xml', async (req, res) => {
   const videos = await readJson(FILES.videos);
   const baseUrl = getBaseUrl(req);
   const items = videos.slice(0, 50).map((video) => {
-    const url = buildVideoPageUrl(req, video.id);
+    const url = buildVideoPageUrl(req, video);
     const title = escapeHtml(video.title || 'THlive24H');
     const description = escapeHtml(`ดูคลิป ${video.title || ''} บน THlive24H`);
     const pubDate = new Date(video.updatedAt || video.createdAt || Date.now()).toUTCString();
@@ -621,11 +828,17 @@ app.get('/feed.xml', async (req, res) => {
 </rss>`);
 });
 
-app.get('/watch/:id', async (req, res) => {
+app.get('/watch/:id/:slug?', async (req, res) => {
   const videos = await readJson(FILES.videos);
-  const video = videos.find((item) => item.id === req.params.id);
-  if (!video) {
+  const index = findVideoIndex(videos, req.params.id);
+  if (index === -1) {
     return res.status(404).sendFile(path.join(PUBLIC_DIR, 'index.html'));
+  }
+
+  const video = videos[index];
+  const expectedSlug = slugify(video.title);
+  if (req.params.slug !== expectedSlug) {
+    return res.redirect(301, buildVideoPageUrl(req, video));
   }
 
   const template = await fs.readFile(path.join(PUBLIC_DIR, 'video.html'), 'utf8');
