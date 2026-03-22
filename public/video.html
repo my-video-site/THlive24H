@@ -50,8 +50,17 @@
             <div class="artplayer-shell hidden" id="artplayer-shell">
               <div id="artplayer-app" class="artplayer-app"></div>
             </div>
-            <iframe id="video-frame" class="player-frame hidden" allowfullscreen loading="lazy"></iframe>
+            <iframe
+              id="video-frame"
+              class="player-frame hidden"
+              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
             <p class="player-note hidden" id="player-note"></p>
+            <div class="player-fallback hidden" id="player-fallback">
+              <a class="button button--primary" id="player-source-link" target="_blank" rel="noreferrer">เปิดคลิปจากต้นทาง</a>
+            </div>
           </section>
 
           <div class="ad-strip">

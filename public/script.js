@@ -426,6 +426,8 @@ if (page === 'video') {
     artContainer: document.getElementById('artplayer-app'),
     frame: document.getElementById('video-frame'),
     note: document.getElementById('player-note'),
+    sourceLinkWrap: document.getElementById('player-fallback'),
+    sourceLink: document.getElementById('player-source-link'),
     source: document.getElementById('video-source'),
     category: document.getElementById('video-category'),
     title: document.getElementById('video-title'),
@@ -472,6 +474,7 @@ if (page === 'video') {
     elements.frame.classList.add('hidden');
     elements.artShell.classList.remove('hidden');
     elements.note.classList.add('hidden');
+    elements.sourceLinkWrap.classList.add('hidden');
     elements.artContainer.innerHTML = '';
 
     artplayerInstance = new window.Artplayer({
@@ -494,6 +497,14 @@ if (page === 'video') {
     elements.frame.classList.remove('hidden');
     elements.frame.src = video.embedUrl;
     elements.note.classList.remove('hidden');
+    elements.note.textContent = 'ถ้าเบราว์เซอร์มือถือเล่นผ่านหน้า embed ไม่ได้ ให้กดปุ่มเปิดคลิปจากต้นทางด้านล่าง';
+    const sourceUrl = video.url || video.embedUrl;
+    if (sourceUrl) {
+      elements.sourceLink.href = sourceUrl;
+      elements.sourceLinkWrap.classList.remove('hidden');
+    } else {
+      elements.sourceLinkWrap.classList.add('hidden');
+    }
     elements.note.textContent = 'ระบบกำลังใช้โหมดดูผ่านหน้า embed อัตโนมัติ';
   }
 
