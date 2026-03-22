@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ดูคลิป | THlive24H</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body data-page="video">
+    <header class="site-header">
+      <div class="site-header__top container">
+        <a class="brand" href="/index.html">
+          <span class="brand__logo">TH</span>
+          <div>
+            <strong>THlive24H</strong>
+            <small>ดูคลิปแบบเรียบง่าย</small>
+          </div>
+        </a>
+        <div class="site-header__actions">
+          <a class="button button--ghost" href="/index.html">กลับหน้าแรก</a>
+          <a class="button button--ghost" href="/admin.html">หลังบ้าน</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container page page--video-portal">
+      <section class="video-stage">
+        <aside class="ad-rail ad-rail--left">
+          <div class="ad-slot" data-slot="A1"></div>
+          <div class="ad-slot" data-slot="A2"></div>
+          <div class="ad-slot" data-slot="A3"></div>
+          <div class="ad-slot" data-slot="A4"></div>
+        </aside>
+
+        <section class="video-main">
+          <section class="player-section player-section--portal">
+            <div class="preroll" id="preroll-overlay">
+              <div class="preroll__card">
+                <button class="popup__close" id="preroll-close-button">x</button>
+                <p class="eyebrow">โฆษณาก่อนเล่น</p>
+                <div class="preroll__media" id="preroll-media-wrap"></div>
+                <h2 id="preroll-title"></h2>
+                <p id="preroll-message"></p>
+                <div class="hero-banner__actions">
+                  <a id="preroll-link" class="button button--primary" target="_blank" rel="noreferrer">เปิดข้อเสนอ</a>
+                  <button id="skip-preroll" class="button button--ghost" disabled>ข้ามได้ใน 5 วินาที</button>
+                </div>
+              </div>
+            </div>
+            <div class="artplayer-shell hidden" id="artplayer-shell">
+              <div id="artplayer-app" class="artplayer-app"></div>
+            </div>
+            <iframe id="video-frame" class="player-frame hidden" allowfullscreen loading="lazy"></iframe>
+            <p class="player-note hidden" id="player-note"></p>
+          </section>
+
+          <div class="ad-strip">
+            <div class="ad-slot ad-slot--banner" data-slot="C1"></div>
+            <div class="ad-slot ad-slot--banner" data-slot="C2"></div>
+          </div>
+
+          <article class="video-detail video-detail--portal">
+            <p class="eyebrow" id="video-source"></p>
+            <h1 id="video-title"></h1>
+            <p class="video-detail__meta">
+              <span id="video-category"></span>
+              <span id="video-views"></span>
+            </p>
+
+            <div class="affiliate-banner" id="affiliate-banner"></div>
+            <button id="popup-trigger" class="button button--ghost">ดูข้อเสนอเพิ่มเติม</button>
+          </article>
+        </section>
+
+        <aside class="ad-rail ad-rail--right">
+          <div class="ad-slot" data-slot="B1"></div>
+          <div class="ad-slot" data-slot="B2"></div>
+          <div class="ad-slot" data-slot="B3"></div>
+          <div class="ad-slot" data-slot="B4"></div>
+        </aside>
+      </section>
+
+      <section class="content-columns">
+        <aside class="related-list related-list--portal">
+          <h2>คลิปที่เกี่ยวข้อง</h2>
+          <div id="related-videos"></div>
+        </aside>
+
+        <aside class="ad-column">
+          <div class="ad-slot ad-slot--banner" data-slot="D1"></div>
+          <div class="ad-slot ad-slot--banner" data-slot="D2"></div>
+          <div class="ad-slot ad-slot--banner" data-slot="D3"></div>
+        </aside>
+      </section>
+    </main>
+
+    <div class="popup hidden" id="offer-popup">
+      <div class="popup__backdrop" id="popup-close-backdrop"></div>
+      <div class="popup__card">
+        <button class="popup__close" id="popup-close-button">x</button>
+        <p class="eyebrow">ข้อเสนอแนะนำ</p>
+        <h3 id="popup-title"></h3>
+        <p id="popup-message"></p>
+        <a id="popup-link" class="button button--primary" target="_blank" rel="noreferrer">เปิดข้อเสนอ</a>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.js"></script>
+    <script src="/script.js"></script>
+  </body>
+</html>

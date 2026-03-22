@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>หลังบ้าน | THlive24H</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body data-page="admin">
+    <main class="container admin-shell">
+      <section class="admin-login" id="login-panel">
+        <div class="panel panel--admin-login">
+          <p class="eyebrow">เข้าสู่ระบบ</p>
+          <h1>หลังบ้าน THlive24H</h1>
+          <form id="login-form" class="stack-form">
+            <input class="input" type="text" name="username" placeholder="ชื่อผู้ใช้" required />
+            <input class="input" type="password" name="password" placeholder="รหัสผ่าน" required />
+            <button class="button button--primary" type="submit">เข้าสู่ระบบ</button>
+          </form>
+          <p class="hint">ค่าเริ่มต้น: admin / admin</p>
+        </div>
+      </section>
+
+      <section class="admin-dashboard hidden" id="dashboard-panel">
+        <header class="admin-header admin-header--portal">
+          <div>
+            <p class="eyebrow">จัดการระบบ</p>
+            <h1>จัดการโฆษณาและรายการคลิป</h1>
+            <p class="hint">หน้านี้เหลือเฉพาะส่วนที่ใช้งานจริง เพิ่มโฆษณา อัปโหลดไฟล์ ลบรายการ และดูข้อมูลทั้งหมด</p>
+          </div>
+          <div class="admin-actions">
+            <button class="button danger" id="clear-videos">ล้างคลิปทั้งหมด</button>
+            <button class="button button--ghost" id="logout-button">ออกจากระบบ</button>
+          </div>
+        </header>
+
+        <section class="stats-row" id="analytics-cards"></section>
+
+        <section class="admin-grid">
+          <div class="panel">
+            <h2>การทำงาน</h2>
+            <p class="hint">1. เลือกตำแหน่งโฆษณา</p>
+            <p class="hint">2. ถ้าเป็นรูปให้เลือกไฟล์รูปแล้วอัปโหลด</p>
+            <p class="hint">3. ถ้าเป็นวิดีโอ E1-E5 ให้เลือกไฟล์วิดีโอแล้วอัปโหลด</p>
+            <p class="hint">4. ลบโฆษณาแล้วระบบจะลบไฟล์ที่อัปโหลดไว้ให้ด้วย</p>
+          </div>
+
+          <div class="panel">
+            <h2>เพิ่มโฆษณา</h2>
+            <p class="hint">อัปโหลดรูปหรือวิดีโอจากเครื่องได้เลย ระบบจะสร้างลิงก์ให้ใช้ต่ออัตโนมัติ</p>
+            <form id="ad-form" class="stack-form">
+              <input class="input" name="title" placeholder="ชื่อโฆษณา (ไม่ใส่ก็ได้)" />
+              <input class="input" name="message" placeholder="ข้อความ (ไม่ใส่ก็ได้)" />
+              <input class="input" name="link" placeholder="ลิงก์ปลายทาง (ไม่ใส่ก็ได้ ยกเว้น O1)" />
+              <input class="input" name="image" placeholder="ลิงก์รูปภาพ" />
+              <input class="input" type="file" name="imageFile" accept="image/*" />
+              <button class="button button--ghost" type="button" id="upload-image-button">อัปโหลดรูปเข้าเซิร์ฟเวอร์</button>
+              <input class="input" name="mediaUrl" placeholder="ลิงก์วิดีโอสำหรับ E1-E5" />
+              <input class="input" type="file" name="videoFile" accept="video/mp4,video/webm,video/ogg" />
+              <button class="button button--ghost" type="button" id="upload-video-button">อัปโหลดวิดีโอเข้าเซิร์ฟเวอร์</button>
+              <input class="input" name="cta" placeholder="ข้อความปุ่ม (ไม่ใส่ก็ได้)" />
+              <select class="input" name="slot">
+                <option value="A1">A1 ซ้ายบน</option>
+                <option value="A2">A2 ซ้ายกลาง</option>
+                <option value="A3">A3 ซ้ายล่าง</option>
+                <option value="A4">A4 ซ้ายล่างสุด</option>
+                <option value="B1">B1 ขวาบน</option>
+                <option value="B2">B2 ขวากลาง</option>
+                <option value="B3">B3 ขวาล่าง</option>
+                <option value="B4">B4 ขวาล่างสุด</option>
+                <option value="C1">C1 แบนเนอร์กลาง</option>
+                <option value="C2">C2 แบนเนอร์กลาง</option>
+                <option value="D1">D1 ด้านล่าง 1</option>
+                <option value="D2">D2 ด้านล่าง 2</option>
+                <option value="D3">D3 ด้านล่าง 3</option>
+                <option value="E1">E1 วิดีโอก่อนเล่น 1</option>
+                <option value="E2">E2 วิดีโอก่อนเล่น 2</option>
+                <option value="E3">E3 วิดีโอก่อนเล่น 3</option>
+                <option value="E4">E4 วิดีโอก่อนเล่น 4</option>
+                <option value="E5">E5 วิดีโอก่อนเล่น 5</option>
+                <option value="O1">O1 โฆษณาใสทั้งหน้า</option>
+                <option value="popup">Popup</option>
+                <option value="button">ปุ่มใต้คลิป</option>
+              </select>
+              <p class="hint" id="ad-slot-hint">O1 ใช้แค่ลิงก์, E1-E5 ใช้วิดีโอ, ตำแหน่งอื่นใช้รูป ลิงก์เป็นตัวเลือกเสริม</p>
+              <p class="hint" id="upload-status">ถ้าอัปโหลดสำเร็จ ระบบจะใส่ลิงก์ลงช่องให้เอง</p>
+              <button class="button button--primary" type="submit">เพิ่มโฆษณา</button>
+            </form>
+          </div>
+        </section>
+
+        <section class="admin-grid">
+          <div class="panel">
+            <h2>คลิปทั้งหมด</h2>
+            <div id="admin-videos" class="admin-list"></div>
+          </div>
+          <div class="panel">
+            <h2>โฆษณาทั้งหมด</h2>
+            <div id="admin-ads" class="admin-list"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/admin.js"></script>
+  </body>
+</html>

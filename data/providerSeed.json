@@ -1,0 +1,74 @@
+{
+  "categories": [
+    "Highlights",
+    "Technology",
+    "Gaming",
+    "News",
+    "Entertainment"
+  ],
+  "tags": [
+    "trending",
+    "featured",
+    "creator",
+    "shorts",
+    "livestream",
+    "review",
+    "breaking",
+    "music",
+    "sports",
+    "tutorial"
+  ],
+  "videos": [
+    {
+      "externalId": "demo-1001",
+      "title": "Weekly Creator Highlights",
+      "description": "A curated roundup of standout creator clips for the week.",
+      "thumbnail": "https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=1200&q=80",
+      "durationSeconds": 185,
+      "categories": ["Highlights", "Entertainment"],
+      "tags": ["trending", "creator", "featured"],
+      "embedUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "publishedAt": "2026-03-18T09:00:00.000Z",
+      "creator": "Studio Pulse",
+      "stats": {
+        "views": 182340,
+        "likes": 9400
+      }
+    },
+    {
+      "externalId": "demo-1002",
+      "title": "Top Tech Stories in 5 Minutes",
+      "description": "Fast coverage of product launches, apps, and creator tools.",
+      "thumbnail": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80",
+      "durationSeconds": 305,
+      "categories": ["Technology", "News"],
+      "tags": ["breaking", "review", "trending"],
+      "embedUrl": "https://player.vimeo.com/video/76979871",
+      "videoUrl": "https://vimeo.com/76979871",
+      "publishedAt": "2026-03-19T04:30:00.000Z",
+      "creator": "Tech Daily",
+      "stats": {
+        "views": 96450,
+        "likes": 5100
+      }
+    },
+    {
+      "externalId": "demo-1003",
+      "title": "Live Match Recap and Fan Reactions",
+      "description": "Highlights from the match with creator commentary and reactions.",
+      "thumbnail": "https://images.unsplash.com/photo-1547347298-4074fc3086f0?auto=format&fit=crop&w=1200&q=80",
+      "durationSeconds": 420,
+      "categories": ["Sports", "Highlights"],
+      "tags": ["sports", "featured", "livestream"],
+      "embedUrl": "https://www.dailymotion.com/embed/video/x84sh87",
+      "videoUrl": "https://www.dailymotion.com/video/x84sh87",
+      "publishedAt": "2026-03-20T12:00:00.000Z",
+      "creator": "FanZone",
+      "stats": {
+        "views": 251230,
+        "likes": 12030
+      }
+    }
+  ]
+}

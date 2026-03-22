@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>THlive24H</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body data-page="index">
+    <header class="site-header">
+      <div class="site-header__top container">
+        <a class="brand" href="/index.html">
+          <span class="brand__logo">TH</span>
+          <div>
+            <strong>THlive24H</strong>
+            <small>รวมคลิปและจัดหมวดหมู่ให้อ่านง่าย</small>
+          </div>
+        </a>
+        <div class="site-header__actions">
+          <a class="button button--ghost" href="/admin.html">หลังบ้าน</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container page page--home">
+      <section class="search-panel search-panel--clean" id="browse-section">
+        <div class="section-head section-head--tight">
+          <div>
+            <p class="eyebrow">รวมคลิปทั้งหมด</p>
+            <h2>เปิดเว็บแล้วดูคลิปได้ทันที</h2>
+          </div>
+        </div>
+        <div class="search-panel__fields">
+          <input id="search-input" class="input" type="search" placeholder="ค้นหาชื่อคลิป..." />
+          <select id="source-filter" class="input">
+            <option value="">ทุกแหล่งที่มา</option>
+            <option value="youtube">YouTube</option>
+            <option value="vimeo">Vimeo</option>
+            <option value="dailymotion">Dailymotion</option>
+            <option value="demo">Demo</option>
+            <option value="python">Python Bridge</option>
+          </select>
+          <select id="category-filter" class="input">
+            <option value="">ทุกหมวดหมู่</option>
+          </select>
+        </div>
+        <p class="search-panel__hint">เลือกหมวด ค้นหาชื่อ แล้วกดดูคลิปได้ทันทีจากหน้านี้</p>
+      </section>
+
+      <section class="stats-row" id="stats-row"></section>
+
+      <section class="panel">
+        <div class="section-head section-head--tight">
+          <div>
+            <p class="eyebrow">หมวดหมู่</p>
+            <h2>เลือกดูตามหมวด</h2>
+          </div>
+        </div>
+        <div class="category-tabs" id="category-pills"></div>
+      </section>
+
+      <section class="video-stage video-stage--index">
+        <aside class="ad-rail ad-rail--left">
+          <div class="ad-slot" data-slot="A1"></div>
+          <div class="ad-slot" data-slot="A2"></div>
+          <div class="ad-slot" data-slot="A3"></div>
+          <div class="ad-slot" data-slot="A4"></div>
+        </aside>
+
+        <section class="video-main">
+          <section class="panel">
+            <div class="section-head section-head--tight">
+              <div>
+                <p class="eyebrow">หน้ารวมคลิป</p>
+                <h2>คลิปทั้งหมดในระบบ</h2>
+              </div>
+            </div>
+            <section class="video-grid video-grid--poster" id="video-grid"></section>
+            <div id="loading-indicator" class="loading">กำลังโหลดคลิป...</div>
+            <section class="pagination" id="pagination"></section>
+          </section>
+
+          <section class="ad-strip ad-strip--inline">
+            <div class="ad-slot ad-slot--banner" data-slot="C1"></div>
+            <div class="ad-slot ad-slot--banner" data-slot="C2"></div>
+          </section>
+        </section>
+
+        <aside class="ad-rail ad-rail--right">
+          <div class="ad-slot" data-slot="B1"></div>
+          <div class="ad-slot" data-slot="B2"></div>
+          <div class="ad-slot" data-slot="B3"></div>
+          <div class="ad-slot" data-slot="B4"></div>
+        </aside>
+      </section>
+
+      <section class="home-sections">
+        <div class="panel">
+          <div class="section-head section-head--tight">
+            <div>
+              <p class="eyebrow">อัปเดตล่าสุด</p>
+              <h2>คลิปมาใหม่</h2>
+            </div>
+          </div>
+          <div class="video-grid video-grid--poster video-grid--compact" id="latest-grid"></div>
+        </div>
+
+        <div class="panel">
+          <div class="section-head section-head--tight">
+            <div>
+              <p class="eyebrow">ยอดนิยม</p>
+              <h2>ดูบ่อยที่สุด</h2>
+            </div>
+          </div>
+          <div class="video-grid video-grid--poster video-grid--compact" id="popular-grid"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head section-head--tight">
+          <div>
+            <p class="eyebrow">แยกตามหมวด</p>
+            <h2>หมวดที่กำลังดู</h2>
+          </div>
+        </div>
+        <div class="category-tab-panel">
+          <div class="video-grid video-grid--poster video-grid--compact" id="category-tab-grid"></div>
+        </div>
+      </section>
+
+      <section class="content-columns">
+        <div class="panel">
+          <p class="eyebrow">สรุปการใช้งาน</p>
+          <h2>โครงหน้าเว็บจัดตามตำแหน่งโฆษณาแบบเดียวกับผังที่คุณส่งมา</h2>
+          <p class="hint">ซ้ายเป็น A1-A4, ขวาเป็น B1-B4, ใต้รายการหลักเป็น C1-C2 และช่วงล่างเป็น D1-D3</p>
+        </div>
+        <aside class="ad-column">
+          <div class="ad-slot ad-slot--banner" data-slot="D1"></div>
+          <div class="ad-slot ad-slot--banner" data-slot="D2"></div>
+          <div class="ad-slot ad-slot--banner" data-slot="D3"></div>
+        </aside>
+      </section>
+    </main>
+
+    <template id="video-card-template">
+      <article class="video-card video-card--poster">
+        <a class="video-card__link" data-video-link>
+          <div class="video-card__thumb-wrap video-card__thumb-wrap--poster">
+            <img data-video-image alt="" loading="lazy" />
+            <span class="video-card__rank" data-video-rank></span>
+            <span class="video-card__badge" data-video-source></span>
+          </div>
+          <div class="video-card__body">
+            <p class="video-card__meta">
+              <span data-video-category></span>
+              <span data-video-views></span>
+            </p>
+            <h3 data-video-title></h3>
+          </div>
+        </a>
+      </article>
+    </template>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,60 @@
+{
+  "videos": [
+    {
+      "id": "demo:demo-1002",
+      "provider": "demo",
+      "externalId": "demo-1002",
+      "title": "Top Tech Stories in 5 Minutes",
+      "description": "Fast coverage of product launches, apps, and creator tools.",
+      "thumbnail": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80",
+      "durationSeconds": 305,
+      "categories": [
+        "Technology",
+        "News"
+      ],
+      "tags": [
+        "breaking",
+        "review",
+        "trending"
+      ],
+      "embedUrl": "https://player.vimeo.com/video/76979871",
+      "videoUrl": "https://vimeo.com/76979871",
+      "publishedAt": "2026-03-19T04:30:00.000Z",
+      "creator": "Tech Daily",
+      "stats": {
+        "views": 96450,
+        "likes": 5100
+      },
+      "fetchedAt": "2026-03-21T16:19:18.968Z"
+    }
+  ],
+  "metadata": {
+    "demo": {
+      "categories": {
+        "items": [
+          "Highlights",
+          "Technology",
+          "Gaming",
+          "News",
+          "Entertainment"
+        ],
+        "updatedAt": "2026-03-22T05:00:00.460Z"
+      },
+      "tags": {
+        "items": [
+          "trending",
+          "featured",
+          "creator",
+          "shorts",
+          "livestream",
+          "review",
+          "breaking",
+          "music",
+          "sports",
+          "tutorial"
+        ],
+        "updatedAt": "2026-03-22T05:12:13.425Z"
+      }
+    }
+  }
+}

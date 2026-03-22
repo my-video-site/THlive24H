@@ -1,0 +1,24 @@
+{
+  "tags:demo::1:100": {
+    "value": {
+      "items": [
+        "trending",
+        "featured",
+        "creator",
+        "shorts",
+        "livestream",
+        "review",
+        "breaking",
+        "music",
+        "sports",
+        "tutorial"
+      ],
+      "page": 1,
+      "limit": 100,
+      "total": 10,
+      "totalPages": 1
+    },
+    "expiresAt": 1774158133424,
+    "updatedAt": "2026-03-22T05:12:13.424Z"
+  }
+}
