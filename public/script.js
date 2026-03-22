@@ -605,11 +605,28 @@ if (page === 'video') {
     showPreroll(prerollAds[prerollIndex]);
   }
 
+  function mountFallbackFrame(video) {
+    destroyPlayer();
+    elements.artShell.classList.add('hidden');
+    elements.frame.classList.remove('hidden');
+    elements.frame.src = video.embedUrl;
+    elements.note.classList.remove('hidden');
+    elements.note.textContent = 'If the embedded player does not work on mobile, use the source button below.';
+
+    const sourceUrl = video.url || video.embedUrl;
+    if (sourceUrl) {
+      elements.sourceLink.href = sourceUrl;
+      elements.sourceLinkWrap.classList.remove('hidden');
+    } else {
+      elements.sourceLinkWrap.classList.add('hidden');
+    }
+  }
+
   function renderRelated(items) {
     elements.related.innerHTML = items
       .map(
         (item) => `
-          <a class="related-item" href="/watch/${encodeURIComponent(item.id)}">
+          <a class="related-item" href="${buildWatchUrl(item)}">
             <span>${escapeHtml(item.title)}</span>
             <strong>${escapeHtml(item.category || 'ทั่วไป')}</strong>
           </a>

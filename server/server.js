@@ -12,6 +12,8 @@ const { runAutoScraper } = require('../scripts/autoScraper');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
+
 const ROOT_DIR = path.join(__dirname, '..');
 const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
 const DATA_DIR = path.join(ROOT_DIR, 'data');
@@ -56,6 +58,26 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitizeInput);
 app.use(rateLimit());
+
+app.get('/index.html', (req, res) => {
+  res.redirect(301, '/');
+});
+
+app.get('/video.html', async (req, res, next) => {
+  const lookupId = String(req.query.id || '').trim();
+  if (!lookupId) {
+    return next();
+  }
+
+  const videos = await readJson(FILES.videos);
+  const index = findVideoIndex(videos, lookupId);
+  if (index === -1) {
+    return next();
+  }
+
+  return res.redirect(301, buildVideoPageUrl(req, videos[index]));
+});
+
 app.use(express.static(PUBLIC_DIR, { index: false }));
 
 async function readJson(file) {
@@ -93,7 +115,10 @@ function buildPublicFileUrl(req, filename) {
 }
 
 function getBaseUrl(req) {
-  return String(process.env.SITE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/+$/, '');
+  const forwardedProto = String(req.headers['x-forwarded-proto'] || req.protocol || 'http')
+    .split(',')[0]
+    .trim();
+  return String(process.env.SITE_URL || `${forwardedProto}://${req.get('host')}`).replace(/\/+$/, '');
 }
 
 function isDirectVideoUrl(url) {
@@ -739,21 +764,6 @@ app.get('/', async (req, res) => {
   ]);
   const seo = buildHomeSeo(videos, req);
   return res.type('html').send(injectHomeSeo(template, seo));
-});
-
-app.get('/video.html', async (req, res, next) => {
-  const lookupId = String(req.query.id || '').trim();
-  if (!lookupId) {
-    return next();
-  }
-
-  const videos = await readJson(FILES.videos);
-  const index = findVideoIndex(videos, lookupId);
-  if (index === -1) {
-    return next();
-  }
-
-  return res.redirect(301, buildVideoPageUrl(req, videos[index]));
 });
 
 app.get('/robots.txt', (req, res) => {
