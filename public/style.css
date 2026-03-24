@@ -326,6 +326,11 @@ select {
   flex: 1 1 260px;
 }
 
+#source-filter,
+[data-video-source] {
+  display: none !important;
+}
+
 .stats-row,
 .admin-grid,
 .content-columns {

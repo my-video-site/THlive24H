@@ -68,9 +68,15 @@ function createPosterPlaceholder(video) {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
+function isUsableThumbnailUrl(url) {
+  const value = String(url || '').trim();
+  if (!value) return false;
+  return !/^(data:)|px\.gif(?:$|\?)|placeholder|blank\.gif|\/assets\/img\/px\.gif/i.test(value);
+}
+
 function buildThumbnailUrl(video) {
   const thumbnail = String(video?.thumbnail || '').trim();
-  return thumbnail || createPosterPlaceholder(video);
+  return isUsableThumbnailUrl(thumbnail) ? thumbnail : createPosterPlaceholder(video);
 }
 
 function formatViews(value) {
@@ -246,7 +252,6 @@ if (page === 'index') {
 
   function renderStats(items) {
     const categories = new Set(items.map((item) => item.category || 'ทั่วไป')).size;
-    const sources = new Set(items.map((item) => item.source || 'unknown')).size;
 
     statsRow.innerHTML = `
       <div class="metric-card"><span>คลิปที่พบ</span><strong>${state.total}</strong></div>
@@ -254,6 +259,16 @@ if (page === 'index') {
       <div class="metric-card"><span>แหล่งที่มา</span><strong>${sources}</strong></div>
     `;
   }
+
+  renderStats = function (items) {
+    const categories = new Set(items.map((item) => item.category || 'ทั่วไป')).size;
+
+    statsRow.innerHTML = `
+      <div class="metric-card"><span>คลิปที่พบ</span><strong>${state.total}</strong></div>
+      <div class="metric-card"><span>หมวดหมู่</span><strong>${categories}</strong></div>
+      <div class="metric-card"><span>แสดงในหน้านี้</span><strong>${items.length}</strong></div>
+    `;
+  };
 
   function renderPagination() {
     pagination.innerHTML = '';

@@ -150,8 +150,30 @@ function getPublicVideoId(video) {
   return String(video?.videoId || video?.id || '').trim();
 }
 
+function cleanVideoTitle(value) {
+  let title = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const trailingPatterns = [
+    /\s+\d+(?:\.\d+)?[KMB]\s+\d+%$/i,
+    /\s+\d+(?:\.\d+)?[KMB]$/i,
+    /\s+\d+%$/i
+  ];
+
+  let previous = '';
+  while (title && title !== previous) {
+    previous = title;
+    trailingPatterns.forEach((pattern) => {
+      title = title.replace(pattern, '').trim();
+    });
+  }
+
+  return title || 'คลิปใหม่';
+}
+
 function buildVideoPageUrl(req, video) {
-  return `${getBaseUrl(req)}/watch/${encodeURIComponent(getPublicVideoId(video))}/${slugify(video?.title)}`;
+  return `${getBaseUrl(req)}/watch/${encodeURIComponent(getPublicVideoId(video))}/${slugify(cleanVideoTitle(video?.title))}`;
 }
 
 function resolveSeoImage(req, imageUrl) {
@@ -332,21 +354,24 @@ function deriveVideoCategory(video) {
 function normalizeVideoRecord(video, index = 0) {
   return {
     ...video,
+    title: cleanVideoTitle(video.title),
     category: deriveVideoCategory(video),
     displayViews: deriveFakeViews(video, index),
-    publicId: getPublicVideoId(video)
+    publicId: getPublicVideoId(video),
+    hasThumbnail: hasUsableThumbnail(video.thumbnail)
   };
 }
 
 function buildVideoSeo(video, req) {
-  const title = `${String(video.title || 'Watch video').trim()} | THlive24H`;
-  const description = `Watch ${String(video.title || 'this video').trim()} on THlive24H. Browse related videos, categories, and the latest updates from the homepage.`;
+  const cleanTitle = cleanVideoTitle(video.title || 'Watch video');
+  const title = `${cleanTitle} | THlive24H`;
+  const description = `Watch ${cleanTitle} on THlive24H. Browse related videos, categories, and the latest updates from the homepage.`;
   const canonical = buildVideoPageUrl(req, video);
   const image = resolveSeoImage(req, video.thumbnail);
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'VideoObject',
-    name: String(video.title || 'THlive24H'),
+    name: cleanTitle,
     description,
     thumbnailUrl: [image],
     uploadDate: new Date(video.createdAt || Date.now()).toISOString(),
@@ -484,7 +509,7 @@ app.get('/videos', async (req, res) => {
 
   let filtered = videos.map((video, index) => normalizeVideoRecord(video, index));
   if (q) {
-    filtered = filtered.filter((video) => video.title.toLowerCase().includes(q));
+    filtered = filtered.filter((video) => cleanVideoTitle(video.title).toLowerCase().includes(q));
   }
   if (source) {
     filtered = filtered.filter((video) => String(video.source).toLowerCase() === source);
@@ -492,6 +517,16 @@ app.get('/videos', async (req, res) => {
   if (category) {
     filtered = filtered.filter((video) => String(video.category || '').toLowerCase() === category);
   }
+
+  filtered.sort((a, b) => {
+    const thumbDiff = Number(Boolean(b.hasThumbnail)) - Number(Boolean(a.hasThumbnail));
+    if (thumbDiff) return thumbDiff;
+
+    const createdDiff = new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    if (createdDiff) return createdDiff;
+
+    return String(a.title || '').localeCompare(String(b.title || ''), 'th');
+  });
 
   const start = (page - 1) * limit;
   const items = filtered.slice(start, start + limit).map((video, index) => normalizeVideoRecord(video, start + index));
@@ -535,6 +570,12 @@ function deriveFakeViews(video, index = 0) {
     return base;
   }
   return 10000 + (base % 900000);
+}
+
+function hasUsableThumbnail(thumbnail) {
+  const value = String(thumbnail || '').trim();
+  if (!value) return false;
+  return !/^(data:)|px\.gif(?:$|\?)|placeholder|blank\.gif|\/assets\/img\/px\.gif/i.test(value);
 }
 
 app.post('/videos', requireAuth, async (req, res) => {

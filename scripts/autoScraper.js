@@ -14,6 +14,28 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function cleanClipTitle(value) {
+  let title = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const trailingPatterns = [
+    /\s+\d+(?:\.\d+)?[KMB]\s+\d+%$/i,
+    /\s+\d+(?:\.\d+)?[KMB]$/i,
+    /\s+\d+%$/i
+  ];
+
+  let previous = '';
+  while (title && title !== previous) {
+    previous = title;
+    trailingPatterns.forEach((pattern) => {
+      title = title.replace(pattern, '').trim();
+    });
+  }
+
+  return title || 'Clip';
+}
+
 function loadOld() {
   try {
     return JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
@@ -37,6 +59,54 @@ function dedupeVideos(videos) {
   return Array.from(map.values());
 }
 
+function isPlaceholderThumbnail(url) {
+  const value = String(url || '').trim();
+  if (!value) return true;
+  return /^(data:)|px\.gif(?:$|\?)|placeholder|blank\.gif|\/assets\/img\/px\.gif/i.test(value);
+}
+
+function pickSrcsetImage(srcset) {
+  const value = String(srcset || '').trim();
+  if (!value) return '';
+  return value
+    .split(',')
+    .map((item) => item.trim().split(/\s+/)[0])
+    .find(Boolean) || '';
+}
+
+function toAbsoluteUrl(value, baseUrl) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    return new URL(raw, baseUrl).toString();
+  } catch {
+    return raw;
+  }
+}
+
+function extractThumbnail($, element, baseUrl) {
+  const img = $(element).find('img').first();
+  if (!img.length) return '';
+
+  const candidates = [
+    img.attr('data-src'),
+    img.attr('data-lazy-src'),
+    img.attr('data-original'),
+    img.attr('data-thumb'),
+    img.attr('data-thumbnail'),
+    img.attr('data-image'),
+    img.attr('data-medium-file'),
+    img.attr('data-large-file'),
+    pickSrcsetImage(img.attr('data-srcset')),
+    pickSrcsetImage(img.attr('srcset')),
+    img.attr('src')
+  ]
+    .map((item) => toAbsoluteUrl(item, baseUrl))
+    .filter(Boolean);
+
+  return candidates.find((item) => !isPlaceholderThumbnail(item)) || '';
+}
+
 async function scrapeMlivevkx(page) {
   const url =
     page === 1
@@ -51,14 +121,14 @@ async function scrapeMlivevkx(page) {
     $('article').each((i, el) => {
       const link = $(el).find('a').attr('href');
       const title = $(el).find('a').text().trim();
-      const thumbnail = $(el).find('img').attr('src');
+      const thumbnail = extractThumbnail($, el, url);
 
       if (!link) return;
 
       const id = link.split('/').filter(Boolean).pop();
       results.push({
         id: `mlivevkx_${id}`,
-        title: title || 'Clip',
+        title: cleanClipTitle(title),
         source: 'mlivevkx',
         videoId: id,
         embedUrl: link,
@@ -89,14 +159,14 @@ async function scrapeMlivehub(page) {
     $('article').each((i, el) => {
       const link = $(el).find('a').attr('href');
       const title = $(el).find('a').text().trim();
-      const thumbnail = $(el).find('img').attr('src');
+      const thumbnail = extractThumbnail($, el, url);
 
       if (!link) return;
 
       const id = link.split('/').filter(Boolean).pop();
       results.push({
         id: `mlivehub_${id}`,
-        title: title || 'Clip',
+        title: cleanClipTitle(title),
         source: 'mlivehub',
         videoId: id,
         embedUrl: link,
@@ -138,7 +208,7 @@ async function runAutoScraper(options = {}) {
   const maxPages = Math.max(1, Number(options.maxPages || MAX_PAGES));
   const oldVideos = loadOld();
   const collected = await collectRound({ maxPages, maxPerRound: limit });
-  const merged = dedupeVideos([...collected, ...oldVideos]);
+  const merged = dedupeVideos([...oldVideos, ...collected]);
 
   save(merged);
 
