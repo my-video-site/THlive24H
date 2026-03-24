@@ -625,11 +625,14 @@ select {
   color: var(--muted);
   background: #111;
   border-top: 1px solid var(--border);
+  line-height: 1.7;
 }
 
 .player-fallback {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
   padding: 16px 18px 20px;
   background: #111;
   border-top: 1px solid var(--border);

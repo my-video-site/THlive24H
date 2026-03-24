@@ -450,6 +450,8 @@ if (page === 'video') {
     frame: document.getElementById('video-frame'),
     note: document.getElementById('player-note'),
     sourceLinkWrap: document.getElementById('player-fallback'),
+    retryButton: document.getElementById('player-retry-button'),
+    openButton: document.getElementById('player-open-button'),
     sourceLink: document.getElementById('player-source-link'),
     source: document.getElementById('video-source'),
     category: document.getElementById('video-category'),
@@ -475,6 +477,8 @@ if (page === 'video') {
   let prerollIndex = 0;
   let prerollCountdown = 5;
   let prerollTimer = null;
+  let activeEmbedUrl = '';
+  let activeSourceUrl = '';
 
   function isDirectVideoUrl(url) {
     return /\.(mp4|webm|ogg|m3u8)(\?.*)?$/i.test(String(url || '').trim());
@@ -487,6 +491,19 @@ if (page === 'video') {
     artplayerInstance = null;
   }
 
+  function getPlaybackSource(video) {
+    return String(video?.url || video?.embedUrl || '').trim();
+  }
+
+  function resetEmbeddedFrame(embedUrl) {
+    const nextUrl = String(embedUrl || '').trim();
+    elements.frame.src = 'about:blank';
+    if (!nextUrl) return;
+    window.setTimeout(() => {
+      elements.frame.src = nextUrl;
+    }, 120);
+  }
+
   function mountArtplayer(video) {
     const candidateUrl = video.url || video.embedUrl;
     if (!window.Artplayer || !isDirectVideoUrl(candidateUrl)) {
@@ -494,6 +511,8 @@ if (page === 'video') {
     }
 
     destroyPlayer();
+    activeEmbedUrl = String(video.embedUrl || candidateUrl || '').trim();
+    activeSourceUrl = getPlaybackSource(video);
     elements.frame.classList.add('hidden');
     elements.artShell.classList.remove('hidden');
     elements.note.classList.add('hidden');
@@ -607,17 +626,21 @@ if (page === 'video') {
 
   function mountFallbackFrame(video) {
     destroyPlayer();
+    activeEmbedUrl = String(video.embedUrl || '').trim();
+    activeSourceUrl = getPlaybackSource(video);
     elements.artShell.classList.add('hidden');
     elements.frame.classList.remove('hidden');
-    elements.frame.src = video.embedUrl;
+    resetEmbeddedFrame(activeEmbedUrl);
     elements.note.classList.remove('hidden');
-    elements.note.textContent = 'If the embedded player does not work on mobile, use the source button below.';
+    elements.note.textContent = 'ถ้า player ต้นทางบล็อกการเล่นในหน้าเว็บนี้ ให้ลองโหลดใหม่ หรือกดเปิดหน้าเล่นคลิป/เปิดแท็บใหม่';
 
-    const sourceUrl = video.url || video.embedUrl;
-    if (sourceUrl) {
-      elements.sourceLink.href = sourceUrl;
+    if (activeSourceUrl) {
+      elements.openButton.disabled = false;
+      elements.sourceLink.href = activeSourceUrl;
       elements.sourceLinkWrap.classList.remove('hidden');
     } else {
+      elements.openButton.disabled = true;
+      elements.sourceLink.removeAttribute('href');
       elements.sourceLinkWrap.classList.add('hidden');
     }
   }
@@ -703,6 +726,22 @@ if (page === 'video') {
       elements.title.textContent = 'ไม่พบคลิปที่ต้องการ';
       elements.preroll.classList.add('hidden');
     });
+
+  elements.retryButton?.addEventListener('click', () => {
+    if (!activeEmbedUrl) return;
+    resetEmbeddedFrame(activeEmbedUrl);
+  });
+
+  elements.openButton?.addEventListener('click', () => {
+    if (!activeSourceUrl) return;
+    trackClick();
+    window.location.href = activeSourceUrl;
+  });
+
+  elements.sourceLink?.addEventListener('click', () => {
+    if (!activeSourceUrl) return;
+    trackClick();
+  });
 
   elements.skip.addEventListener('click', () => {
     if (elements.skip.disabled) return;

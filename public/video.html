@@ -54,12 +54,15 @@
             <iframe
               id="video-frame"
               class="player-frame hidden"
-              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+              allow="autoplay; fullscreen; picture-in-picture; encrypted-media; clipboard-write; web-share"
+              referrerpolicy="origin-when-cross-origin"
               allowfullscreen
-              loading="lazy"
+              loading="eager"
             ></iframe>
             <p class="player-note hidden" id="player-note"></p>
             <div class="player-fallback hidden" id="player-fallback">
+              <button class="button button--ghost" id="player-retry-button" type="button">ลองโหลดใหม่</button>
+              <button class="button button--ghost" id="player-open-button" type="button">เปิดหน้าเล่นคลิป</button>
               <a class="button button--primary" id="player-source-link" target="_blank" rel="noreferrer">เปิดคลิปจากต้นทาง</a>
             </div>
           </section>
