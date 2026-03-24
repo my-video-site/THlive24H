@@ -1,6 +1,23 @@
 {
   "events": [
     {
+      "id": "ad.create-1774331880413",
+      "type": "ad.create",
+      "payload": {
+        "id": "ad-1774331880412-1h9hg9",
+        "title": ""
+      },
+      "createdAt": "2026-03-24T05:58:00.413Z"
+    },
+    {
+      "id": "video.view-1774331441149",
+      "type": "video.view",
+      "payload": {
+        "id": "mlivehub_15346"
+      },
+      "createdAt": "2026-03-24T05:50:41.149Z"
+    },
+    {
       "id": "video.view-1774331206906",
       "type": "video.view",
       "payload": {
@@ -1018,13 +1035,13 @@
     }
   ],
   "analytics": {
-    "views": 54,
+    "views": 55,
     "clicks": 1,
     "topVideos": [
       {
         "id": "mlivehub_15346",
         "title": "25:15 หลุด THLive สาวแว่นนมใหญ่ ไลฟ์สดคุยเสียวกับพี่ยูส โชว์นมใหญ่ๆ ยั่วเยส นั่งคุยเสียว เล่าเรื่องสยิว สมัยมหาลัย ทำเอาควยแข็งไปเลย",
-        "views": 4,
+        "views": 5,
         "clicks": 0,
         "score": 0
       },

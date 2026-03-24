@@ -1,16 +1,18 @@
-﻿const page = document.body.dataset.page;
+const page = document.body.dataset.page;
 
 async function request(url, options = {}) {
   let response;
   try {
     response = await fetch(url, options);
   } catch (error) {
-    throw new Error('à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¹€à¸‹à¸´à¸£à¹Œà¸Ÿà¹€à¸§à¸­à¸£à¹Œà¹„à¸¡à¹ˆà¹„à¸”à¹‰ à¸à¸£à¸¸à¸“à¸²à¹€à¸›à¸´à¸” node server/server.js à¸à¹ˆà¸­à¸™');
+    throw new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาเปิด node server/server.js ก่อน');
   }
+
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
-    throw new Error(payload.error || 'à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”à¹ƒà¸™à¸à¸²à¸£à¹‚à¸«à¸¥à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥');
+    throw new Error(payload.error || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
   }
+
   return response.json();
 }
 
@@ -23,9 +25,25 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+function repairText(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  if (!/[\u00C3\u00E0\u00E2]/.test(text)) {
+    return text;
+  }
+
+  try {
+    const bytes = Uint8Array.from([...text].map((char) => char.charCodeAt(0) & 0xff));
+    const decoded = new TextDecoder('utf-8').decode(bytes).trim();
+    return decoded || text;
+  } catch (error) {
+    return text;
+  }
+}
+
 function slugify(value) {
   return (
-    String(value || 'video')
+    repairText(value || 'video')
       .toLowerCase()
       .normalize('NFKD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -37,35 +55,7 @@ function slugify(value) {
 
 function buildWatchUrl(video) {
   const publicId = encodeURIComponent(String(video?.publicId || video?.videoId || video?.id || '').trim());
-  return `/watch/${publicId}/${slugify(video?.title)}`;
-}
-
-function createPosterPlaceholder(video) {
-  const source = String(video?.source || 'VIDEO').toUpperCase();
-  const title = String(video?.title || 'THlive24H').trim() || 'THlive24H';
-  const shortTitle = title.length > 42 ? `${title.slice(0, 39)}...` : title;
-  const safeSource = escapeHtml(source);
-  const safeTitle = escapeHtml(shortTitle);
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 900">
-      <defs>
-        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#151515" />
-          <stop offset="55%" stop-color="#2f2110" />
-          <stop offset="100%" stop-color="#9e7722" />
-        </linearGradient>
-      </defs>
-      <rect width="640" height="900" fill="url(#bg)" />
-      <rect x="32" y="32" width="576" height="836" rx="28" fill="rgba(0,0,0,0.22)" stroke="rgba(255,255,255,0.16)" />
-      <text x="64" y="128" fill="#f5d06f" font-size="44" font-family="Arial, sans-serif" font-weight="700">${safeSource}</text>
-      <text x="64" y="205" fill="#ffffff" font-size="34" font-family="Arial, sans-serif">${safeTitle}</text>
-      <circle cx="320" cy="474" r="102" fill="rgba(255,255,255,0.12)" />
-      <polygon points="292,420 292,528 388,474" fill="#ffffff" />
-      <text x="64" y="805" fill="rgba(255,255,255,0.72)" font-size="24" font-family="Arial, sans-serif">THlive24H</text>
-    </svg>
-  `;
-
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  return `/watch/${publicId}/${slugify(video?.displayTitle || video?.title)}`;
 }
 
 function isUsableThumbnailUrl(url) {
@@ -74,13 +64,73 @@ function isUsableThumbnailUrl(url) {
   return !/^(data:)|px\.gif(?:$|\?)|placeholder|blank\.gif|\/assets\/img\/px\.gif/i.test(value);
 }
 
+function createPosterPlaceholder(video) {
+  const category = repairText(video?.displayCategory || video?.category || 'ทั่วไป').toUpperCase();
+  const title = repairText(video?.displayTitle || video?.title || 'THlive24H');
+  const shortTitle = title.length > 38 ? `${title.slice(0, 35)}...` : title;
+  const safeCategory = escapeHtml(category);
+  const safeTitle = escapeHtml(shortTitle);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 960">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#151515" />
+          <stop offset="55%" stop-color="#261f10" />
+          <stop offset="100%" stop-color="#8d6718" />
+        </linearGradient>
+      </defs>
+      <rect width="720" height="960" fill="url(#bg)" />
+      <rect x="28" y="28" width="664" height="904" rx="28" fill="rgba(0,0,0,0.18)" stroke="rgba(255,255,255,0.16)" />
+      <text x="60" y="110" fill="#f5d06f" font-size="40" font-family="Arial, sans-serif" font-weight="700">${safeCategory}</text>
+      <text x="60" y="170" fill="#ffffff" font-size="30" font-family="Arial, sans-serif">${safeTitle}</text>
+      <circle cx="360" cy="490" r="98" fill="rgba(255,255,255,0.12)" />
+      <polygon points="332,440 332,540 420,490" fill="#ffffff" />
+      <text x="60" y="860" fill="rgba(255,255,255,0.72)" font-size="24" font-family="Arial, sans-serif">THlive24H</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 function buildThumbnailUrl(video) {
   const thumbnail = String(video?.thumbnail || '').trim();
   return isUsableThumbnailUrl(thumbnail) ? thumbnail : createPosterPlaceholder(video);
 }
 
 function formatViews(value) {
-  return `${Number(value || 0).toLocaleString('th-TH')} à¸„à¸£à¸±à¹‰à¸‡`;
+  return `${Number(value || 0).toLocaleString('th-TH')} ครั้ง`;
+}
+
+function extractDurationFromTitle(title) {
+  const text = repairText(title);
+  const match = text.match(/(^|\s)(\d{1,2}:\d{2}(?::\d{2})?)(?=\s|$)/);
+  return match ? match[2] : '';
+}
+
+function stripDurationFromTitle(title) {
+  const text = repairText(title)
+    .replace(/(^|\s)\d{1,2}:\d{2}(?::\d{2})?(?=\s|$)/, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\-–—|/:\s]+|[\-–—|/:\s]+$/g, '')
+    .trim();
+
+  return text || repairText(title);
+}
+
+function normalizeVideo(video) {
+  const displayTitle = stripDurationFromTitle(video.title || '');
+  const duration = extractDurationFromTitle(video.title || '');
+  const displayCategory = repairText(video.category || 'ทั่วไป');
+
+  return {
+    ...video,
+    title: repairText(video.title),
+    displayTitle,
+    duration,
+    displayCategory,
+    displayViews: Number(video.displayViews || video.views || 0),
+    thumbnail: buildThumbnailUrl(video)
+  };
 }
 
 function createSlotRenderer(slotSelector = '.ad-slot[data-slot]') {
@@ -92,7 +142,7 @@ function createSlotRenderer(slotSelector = '.ad-slot[data-slot]') {
   function fillAdPlaceholders() {
     slotMap.forEach((slot) => {
       if (!slot.innerHTML.trim()) {
-        slot.innerHTML = '<div class="ad-slot--placeholder">à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹‚à¸†à¸©à¸“à¸²</div>';
+        slot.innerHTML = '<div class="ad-slot--placeholder">พื้นที่โฆษณา</div>';
       }
     });
   }
@@ -100,32 +150,43 @@ function createSlotRenderer(slotSelector = '.ad-slot[data-slot]') {
   function closeAdContainer(button) {
     const host = button.closest('.ad-card')?.parentElement;
     if (host) {
-      host.innerHTML = '<div class="ad-slot--placeholder">à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹‚à¸†à¸©à¸“à¸²</div>';
+      host.innerHTML = '<div class="ad-slot--placeholder">พื้นที่โฆษณา</div>';
     }
   }
 
   function buildAdMarkup(ad) {
-    const imageHtml = ad.image
-      ? `<img class="ad-card__media" src="${escapeHtml(ad.image)}" alt="${escapeHtml(ad.title || ad.slot)}" />`
+    const image = String(ad.image || '').trim();
+    const title = repairText(ad.title || ad.slot || 'Advertisement');
+    const imageHtml = image
+      ? `<img class="ad-card__media" src="${escapeHtml(image)}" alt="${escapeHtml(title)}" />`
       : `<div class="ad-card__media"></div>`;
+
+    if (String(ad.link || '').trim()) {
+      return `
+        <article class="ad-card">
+          <button class="ad-card__close" type="button" data-close-ad>×</button>
+          <a class="ad-card__link" href="${escapeHtml(ad.link)}" target="_blank" rel="noreferrer" data-ad-click>
+            ${imageHtml}
+          </a>
+        </article>
+      `;
+    }
 
     return `
       <article class="ad-card">
-        <button class="ad-card__close" type="button" data-close-ad>Ã—</button>
-        ${String(ad.link || '').trim()
-          ? `<a class="ad-card__link" href="${escapeHtml(ad.link)}" target="_blank" rel="noreferrer" data-ad-click>${imageHtml}</a>`
-          : `<div class="ad-card__link">${imageHtml}</div>`}
+        <button class="ad-card__close" type="button" data-close-ad>×</button>
+        <div class="ad-card__link">${imageHtml}</div>
       </article>
     `;
   }
 
   function renderSlotAds(ads, onClick) {
     ads.forEach((ad) => {
-      if (/^E[1-5]$/.test(ad.slot)) return;
+      if (/^E[1-5]$/.test(ad.slot) || ad.slot === 'O1') return;
       const slot = slotMap.get(ad.slot);
       if (!slot) return;
-      slot.innerHTML = buildAdMarkup(ad);
 
+      slot.innerHTML = buildAdMarkup(ad);
       slot.querySelector('[data-close-ad]')?.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -139,7 +200,7 @@ function createSlotRenderer(slotSelector = '.ad-slot[data-slot]') {
       });
 
       slot.querySelector('.ad-card__media')?.addEventListener('error', () => {
-        slot.innerHTML = '<div class="ad-slot--placeholder">à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹‚à¸†à¸©à¸“à¸²</div>';
+        slot.innerHTML = '<div class="ad-slot--placeholder">พื้นที่โฆษณา</div>';
       });
     });
 
@@ -154,53 +215,64 @@ function createSlotRenderer(slotSelector = '.ad-slot[data-slot]') {
 
 function mountOverlayAd(ads) {
   const overlayAd = ads.find((ad) => ad.active !== false && ad.slot === 'O1' && ad.link);
+  document.getElementById('o1-overlay')?.remove();
   if (!overlayAd) return;
 
-  const existing = document.getElementById('o1-overlay');
-  if (existing) existing.remove();
+  const wrapper = document.createElement('div');
+  wrapper.id = 'o1-overlay';
+  wrapper.className = 'o1-overlay';
+  wrapper.innerHTML = `
+    <a class="o1-overlay__link" href="${escapeHtml(overlayAd.link)}" target="_blank" rel="noreferrer">
+      <strong>โปรโมชัน</strong>
+      <span>คลิกดูข้อเสนอวันนี้</span>
+    </a>
+    <button class="o1-overlay__close" type="button" aria-label="close">×</button>
+  `;
 
-  const overlay = document.createElement('a');
-  overlay.id = 'o1-overlay';
-  overlay.className = 'o1-overlay';
-  overlay.href = overlayAd.link;
-  overlay.target = '_blank';
-  overlay.rel = 'noreferrer noopener';
-  overlay.setAttribute('aria-label', 'overlay-ad');
-  overlay.addEventListener('click', () => {
-    overlay.remove();
+  wrapper.querySelector('.o1-overlay__close')?.addEventListener('click', () => {
+    wrapper.remove();
   });
-  document.body.appendChild(overlay);
+
+  document.body.appendChild(wrapper);
 }
 
-function buildVideoCard(template, video) {
+function buildVideoCard(template, rawVideo) {
+  const video = normalizeVideo(rawVideo);
   const node = template.content.cloneNode(true);
+  const link = node.querySelector('[data-video-link]');
   const image = node.querySelector('[data-video-image]');
+  const durationNode = node.querySelector('[data-video-duration]');
+  const rankNode = node.querySelector('[data-video-rank]');
 
-  node.querySelector('[data-video-link]').href = buildWatchUrl(video);
-  image.src = buildThumbnailUrl(video);
-  image.alt = video.title;
+  link.href = buildWatchUrl(video);
+  link.target = '_blank';
+  link.rel = 'noreferrer noopener';
+
+  image.src = video.thumbnail;
+  image.alt = video.displayTitle;
   image.loading = 'lazy';
   image.onerror = () => {
     image.onerror = null;
     image.src = createPosterPlaceholder(video);
   };
 
-  const categoryNode = node.querySelector('[data-video-category]');
-  const viewsNode = node.querySelector('[data-video-views]');
-  const rankNode = node.querySelector('[data-video-rank]');
+  node.querySelector('[data-video-title]').textContent = video.displayTitle;
+  node.querySelector('[data-video-category]').textContent = video.displayCategory;
+  node.querySelector('[data-video-views]').textContent = formatViews(video.displayViews);
 
   if (rankNode) {
-    rankNode.textContent = video.rank ? `à¸­à¸±à¸™à¸”à¸±à¸š ${video.rank}` : 'à¸¡à¸²à¹ƒà¸«à¸¡à¹ˆ';
+    rankNode.textContent = video.rank ? `อันดับ ${video.rank}` : 'มาใหม่';
   }
 
-  node.querySelector('[data-video-source]').textContent = String(video.source || '').toUpperCase();
-  if (categoryNode) {
-    categoryNode.textContent = video.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›';
+  if (durationNode) {
+    if (video.duration) {
+      durationNode.hidden = false;
+      durationNode.textContent = video.duration;
+    } else {
+      durationNode.hidden = true;
+      durationNode.textContent = '';
+    }
   }
-  if (viewsNode) {
-    viewsNode.textContent = formatViews(video.displayViews || video.views || 0);
-  }
-  node.querySelector('[data-video-title]').textContent = video.title;
 
   return node;
 }
@@ -218,14 +290,13 @@ function renderCardList(container, template, items, emptyText) {
 }
 
 if (page === 'index') {
-  const indexParams = new URLSearchParams(window.location.search);
+  const searchParams = new URLSearchParams(window.location.search);
   const state = {
     page: 1,
     limit: 40,
     loading: false,
-    query: indexParams.get('q') || '',
-    source: indexParams.get('source') || '',
-    category: indexParams.get('category') || '',
+    query: searchParams.get('q') || '',
+    category: searchParams.get('category') || '',
     loaded: [],
     total: 0,
     totalPages: 1,
@@ -242,172 +313,165 @@ if (page === 'index') {
   const template = document.getElementById('video-card-template');
   const statsRow = document.getElementById('stats-row');
   const pagination = document.getElementById('pagination');
-  const sourceFilter = document.getElementById('source-filter');
   const categoryFilter = document.getElementById('category-filter');
   const searchInput = document.getElementById('search-input');
   const slotRenderer = createSlotRenderer();
 
   searchInput.value = state.query;
-  sourceFilter.value = state.source;
 
   function renderStats(items) {
-    const categories = new Set(items.map((item) => item.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›')).size;
-
+    const categories = new Set(items.map((item) => normalizeVideo(item).displayCategory || 'ทั่วไป')).size;
     statsRow.innerHTML = `
-      <div class="metric-card"><span>à¸„à¸¥à¸´à¸›à¸—à¸µà¹ˆà¸žà¸š</span><strong>${state.total}</strong></div>
-      <div class="metric-card"><span>à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ</span><strong>${categories}</strong></div>
-      <div class="metric-card"><span>à¹à¸«à¸¥à¹ˆà¸‡à¸—à¸µà¹ˆà¸¡à¸²</span><strong>${sources}</strong></div>
+      <div class="metric-card"><span>คลิปทั้งหมด</span><strong>${state.total}</strong></div>
+      <div class="metric-card"><span>หมวดหมู่</span><strong>${categories}</strong></div>
+      <div class="metric-card"><span>แสดงในหน้านี้</span><strong>${items.length}</strong></div>
     `;
   }
-
-  renderStats = function (items) {
-    const categories = new Set(items.map((item) => item.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›')).size;
-
-    statsRow.innerHTML = `
-      <div class="metric-card"><span>à¸„à¸¥à¸´à¸›à¸—à¸µà¹ˆà¸žà¸š</span><strong>${state.total}</strong></div>
-      <div class="metric-card"><span>à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ</span><strong>${categories}</strong></div>
-      <div class="metric-card"><span>à¹à¸ªà¸”à¸‡à¹ƒà¸™à¸«à¸™à¹‰à¸²à¸™à¸µà¹‰</span><strong>${items.length}</strong></div>
-    `;
-  };
 
   function renderPagination() {
     pagination.innerHTML = '';
 
     const info = document.createElement('div');
     info.className = 'pagination__info';
-    info.textContent = `à¸«à¸™à¹‰à¸² ${state.page} / ${state.totalPages} , à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸” ${state.total} à¸„à¸¥à¸´à¸›`;
+    info.textContent = `หน้า ${state.page} / ${state.totalPages} · ทั้งหมด ${state.total} คลิป`;
     pagination.appendChild(info);
 
     const prev = document.createElement('button');
     prev.className = 'button button--ghost';
-    prev.textContent = 'à¸à¹ˆà¸­à¸™à¸«à¸™à¹‰à¸²';
+    prev.textContent = 'ก่อนหน้า';
     prev.disabled = state.page <= 1;
     prev.addEventListener('click', () => {
-      if (state.page > 1) {
-        state.page -= 1;
-        loadVideos();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      if (state.page <= 1) return;
+      state.page -= 1;
+      loadVideos();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     pagination.appendChild(prev);
 
     const startPage = Math.max(1, state.page - 2);
     const endPage = Math.min(state.totalPages, state.page + 2);
-    for (let i = startPage; i <= endPage; i += 1) {
-      const pageButton = document.createElement('button');
-      pageButton.className = `button button--ghost${i === state.page ? ' is-active' : ''}`;
-      pageButton.textContent = String(i);
-      pageButton.addEventListener('click', () => {
-        state.page = i;
+    for (let pageNumber = startPage; pageNumber <= endPage; pageNumber += 1) {
+      const button = document.createElement('button');
+      button.className = `button button--ghost${pageNumber === state.page ? ' is-active' : ''}`;
+      button.textContent = String(pageNumber);
+      button.addEventListener('click', () => {
+        state.page = pageNumber;
         loadVideos();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
-      pagination.appendChild(pageButton);
+      pagination.appendChild(button);
     }
 
     const next = document.createElement('button');
     next.className = 'button button--ghost';
-    next.textContent = 'à¸–à¸±à¸”à¹„à¸›';
+    next.textContent = 'ถัดไป';
     next.disabled = state.page >= state.totalPages;
     next.addEventListener('click', () => {
-      if (state.page < state.totalPages) {
-        state.page += 1;
-        loadVideos();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      if (state.page >= state.totalPages) return;
+      state.page += 1;
+      loadVideos();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     pagination.appendChild(next);
   }
 
   function renderCategoryFilter() {
-    categoryFilter.innerHTML = '<option value="">à¸—à¸¸à¸à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ</option>';
+    categoryFilter.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
     state.categories.forEach((item) => {
       const option = document.createElement('option');
       option.value = item.name;
-      option.textContent = `${item.name} (${item.total})`;
-      if (item.name === state.category) {
-        option.selected = true;
-      }
+      option.textContent = `${repairText(item.name)} (${item.total})`;
+      option.selected = item.name === state.category;
       categoryFilter.appendChild(option);
     });
   }
 
   function renderCategoryPills() {
     categoryPills.innerHTML = '';
+
     const allButton = document.createElement('button');
     allButton.className = `category-pill${!state.category ? ' is-active' : ''}`;
-    allButton.textContent = 'à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”';
+    allButton.textContent = 'ทั้งหมด';
     allButton.addEventListener('click', () => {
       state.category = '';
       categoryFilter.value = '';
       state.page = 1;
       loadVideos();
+      renderCategoryPills();
     });
     categoryPills.appendChild(allButton);
 
-    state.categories.slice(0, 8).forEach((item) => {
+    state.categories.slice(0, 10).forEach((item) => {
       const button = document.createElement('button');
       button.className = `category-pill${state.category === item.name ? ' is-active' : ''}`;
-      button.textContent = item.name;
+      button.textContent = repairText(item.name);
       button.addEventListener('click', () => {
         state.category = item.name;
         categoryFilter.value = item.name;
         state.page = 1;
         loadVideos();
+        renderCategoryPills();
       });
       categoryPills.appendChild(button);
     });
   }
 
   function renderOverviewSections() {
-    const latest = [...state.overviewItems]
-      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    const normalized = state.overviewItems.map(normalizeVideo);
+    const latest = [...normalized]
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
       .slice(0, 8);
-    const popular = [...state.overviewItems]
+    const popular = [...normalized]
       .sort((a, b) => (b.displayViews || 0) - (a.displayViews || 0))
       .slice(0, 8);
-
-    renderCardList(latestGrid, template, latest, 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¸¥à¸´à¸›à¹ƒà¸«à¸¡à¹ˆ');
-    renderCardList(popularGrid, template, popular, 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¸¥à¸´à¸›à¸¢à¸­à¸”à¸™à¸´à¸¢à¸¡');
     const activeCategory = state.category || state.categories[0]?.name || '';
-    const groupItems = activeCategory
-      ? state.overviewItems
-          .filter((video) => String(video.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›') === activeCategory)
-          .slice(0, 8)
-      : state.overviewItems.slice(0, 8);
+    const categoryItems = activeCategory
+      ? normalized.filter((item) => item.displayCategory === repairText(activeCategory)).slice(0, 8)
+      : normalized.slice(0, 8);
 
-    renderCardList(categoryTabGrid, template, groupItems, 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¸¥à¸´à¸›à¹ƒà¸™à¸«à¸¡à¸§à¸”à¸™à¸µà¹‰');
+    renderCardList(latestGrid, template, latest, 'ยังไม่มีคลิปใหม่');
+    renderCardList(popularGrid, template, popular, 'ยังไม่มีคลิปยอดนิยม');
+    renderCardList(categoryTabGrid, template, categoryItems, 'ยังไม่มีคลิปในหมวดนี้');
   }
 
   async function loadOverview() {
-    const [overviewData, categoryData] = await Promise.all([
+    const [overviewData, categoryData, ads] = await Promise.all([
       request('/videos?limit=120'),
-      request('/videos/categories')
+      request('/videos/categories'),
+      request('/ads').catch(() => [])
     ]);
 
     state.overviewItems = overviewData.items || [];
-    state.categories = categoryData.items || [];
+    state.categories = (categoryData.items || []).map((item) => ({
+      ...item,
+      name: repairText(item.name)
+    }));
+
     renderCategoryFilter();
     renderCategoryPills();
     renderOverviewSections();
+
+    const activeAds = (ads || []).filter((ad) => ad.active !== false);
+    slotRenderer.renderSlotAds(activeAds, () => {});
+    mountOverlayAd(activeAds);
   }
 
   async function loadVideos() {
     if (state.loading) return;
     state.loading = true;
     loadingIndicator.style.display = 'block';
-    loadingIndicator.textContent = 'à¸à¸³à¸¥à¸±à¸‡à¹‚à¸«à¸¥à¸”à¸„à¸¥à¸´à¸›...';
+    loadingIndicator.textContent = 'กำลังโหลดคลิป...';
 
     try {
       const data = await request(
-        `/videos?page=${state.page}&limit=${state.limit}&q=${encodeURIComponent(state.query)}&source=${encodeURIComponent(state.source)}&category=${encodeURIComponent(state.category)}`
+        `/videos?page=${state.page}&limit=${state.limit}&q=${encodeURIComponent(state.query)}&category=${encodeURIComponent(state.category)}`
       );
 
-      state.loaded = data.items;
-      state.total = data.total;
-      state.totalPages = data.totalPages || 1;
+      state.loaded = data.items || [];
+      state.total = Number(data.total || 0);
+      state.totalPages = Number(data.totalPages || 1);
 
-      renderCardList(grid, template, data.items, 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸žà¸šà¸„à¸¥à¸´à¸›à¸—à¸µà¹ˆà¸•à¸£à¸‡à¸à¸±à¸šà¸•à¸±à¸§à¸à¸£à¸­à¸‡à¸™à¸µà¹‰');
+      renderCardList(grid, template, state.loaded.map(normalizeVideo), 'ยังไม่พบคลิปที่ตรงกับตัวกรองนี้');
       renderStats(state.loaded);
       renderPagination();
     } catch (error) {
@@ -421,32 +485,22 @@ if (page === 'index') {
 
   async function handleFilterChange() {
     state.query = searchInput.value.trim();
-    state.source = sourceFilter.value;
     state.category = categoryFilter.value;
     state.page = 1;
     renderCategoryPills();
     await loadVideos();
+    renderOverviewSections();
   }
 
   searchInput.addEventListener('input', () => {
-    clearTimeout(window.__streamboostSearchTimer);
-    window.__streamboostSearchTimer = setTimeout(handleFilterChange, 250);
+    clearTimeout(window.__thliveSearchTimer);
+    window.__thliveSearchTimer = setTimeout(handleFilterChange, 250);
   });
 
-  sourceFilter.addEventListener('change', handleFilterChange);
   categoryFilter.addEventListener('change', handleFilterChange);
 
-  request('/ads')
-    .then((ads) => {
-      const activeAds = ads.filter((ad) => ad.active !== false);
-      slotRenderer.renderSlotAds(activeAds, () => {});
-      mountOverlayAd(activeAds);
-    })
-    .catch(() => {
-      slotRenderer.fillAdPlaceholders();
-    });
-
   Promise.all([loadOverview(), loadVideos()]).catch((error) => {
+    loadingIndicator.style.display = 'block';
     loadingIndicator.textContent = error.message;
   });
 }
@@ -510,13 +564,13 @@ if (page === 'video') {
   }
 
   function mountArtplayer(video) {
-    const candidateUrl = video.url || video.embedUrl;
+    const candidateUrl = String(video.url || video.embedUrl || '').trim();
     if (!window.Artplayer || !isDirectVideoUrl(candidateUrl)) {
       return false;
     }
 
     destroyPlayer();
-    activeEmbedUrl = String(video.embedUrl || candidateUrl || '').trim();
+    activeEmbedUrl = String(video.embedUrl || candidateUrl).trim();
     elements.frame.classList.add('hidden');
     elements.artShell.classList.remove('hidden');
     elements.artContainer.innerHTML = '';
@@ -543,7 +597,6 @@ if (page === 'video') {
     resetEmbeddedFrame(activeEmbedUrl);
   }
 
-
   function trackClick() {
     return fetch(`/videos/${id}/click`, { method: 'POST' }).catch(() => {});
   }
@@ -564,10 +617,10 @@ if (page === 'video') {
   function showPreroll(ad) {
     prerollCountdown = 5;
     elements.skip.disabled = true;
-    elements.skip.textContent = `à¸‚à¹‰à¸²à¸¡à¹„à¸”à¹‰à¹ƒà¸™ ${prerollCountdown} à¸§à¸´à¸™à¸²à¸—à¸µ`;
+    elements.skip.textContent = `ข้ามได้ใน ${prerollCountdown} วินาที`;
     elements.preroll.querySelector('.preroll__card').classList.add('preroll__titleless');
-    elements.prerollTitle.textContent = ad.title || '';
-    elements.prerollMessage.textContent = ad.message || '';
+    elements.prerollTitle.textContent = repairText(ad.title || '');
+    elements.prerollMessage.textContent = repairText(ad.message || '');
     elements.prerollLink.href = ad.link || '#';
     elements.prerollLink.style.display = 'none';
 
@@ -596,14 +649,14 @@ if (page === 'video') {
     prerollTimer = setInterval(() => {
       prerollCountdown -= 1;
       if (prerollCountdown > 0) {
-        elements.skip.textContent = `à¸‚à¹‰à¸²à¸¡à¹„à¸”à¹‰à¹ƒà¸™ ${prerollCountdown} à¸§à¸´à¸™à¸²à¸—à¸µ`;
+        elements.skip.textContent = `ข้ามได้ใน ${prerollCountdown} วินาที`;
         return;
       }
 
       clearInterval(prerollTimer);
       prerollTimer = null;
       elements.skip.disabled = false;
-      elements.skip.textContent = 'à¸‚à¹‰à¸²à¸¡';
+      elements.skip.textContent = 'ข้าม';
     }, 1000);
   }
 
@@ -617,17 +670,17 @@ if (page === 'video') {
     showPreroll(prerollAds[prerollIndex]);
   }
 
-
   function renderRelated(items) {
     elements.related.innerHTML = items
-      .map(
-        (item) => `
-          <a class="related-item" href="${buildWatchUrl(item)}">
-            <span>${escapeHtml(item.title)}</span>
-            <strong>${escapeHtml(item.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›')}</strong>
+      .map((item) => {
+        const video = normalizeVideo(item);
+        return `
+          <a class="related-item" href="${buildWatchUrl(video)}" target="_blank" rel="noreferrer noopener">
+            <span>${escapeHtml(video.displayTitle)}</span>
+            <strong>${escapeHtml(video.displayCategory)}</strong>
           </a>
-        `
-      )
+        `;
+      })
       .join('');
   }
 
@@ -639,23 +692,24 @@ if (page === 'video') {
   }
 
   request(`/videos/${id}`)
-    .then(async ({ video, related }) => {
-      const usedArtplayer = mountArtplayer(video);
-      if (!usedArtplayer) {
+    .then(async ({ video: rawVideo, related }) => {
+      const video = normalizeVideo(rawVideo);
+      if (!mountArtplayer(video)) {
         mountFallbackFrame(video);
       }
-      elements.source.textContent = `à¹à¸«à¸¥à¹ˆà¸‡à¸—à¸µà¹ˆà¸¡à¸²: ${String(video.source || '').toUpperCase()}`;
-      elements.category.textContent = `à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ: ${video.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›'}`;
-      elements.title.textContent = video.title;
-      elements.views.textContent = `à¸¢à¸­à¸”à¸”à¸¹ ${formatViews(video.displayViews || 0)}`;
-      renderRelated(related);
 
-      const buttonAd = video.affiliateSlots?.button;
-      const popupAd = video.affiliateSlots?.popup;
+      elements.source.textContent = 'คลิปที่กำลังดู';
+      elements.category.textContent = `หมวดหมู่: ${video.displayCategory}`;
+      elements.title.textContent = video.displayTitle;
+      elements.views.textContent = `ยอดดู ${formatViews(video.displayViews)}`;
+      renderRelated(related || []);
+
+      const buttonAd = rawVideo.affiliateSlots?.button;
+      const popupAd = rawVideo.affiliateSlots?.popup;
 
       if (buttonAd) {
         elements.banner.innerHTML = `
-          <button class="ad-card__close" type="button" id="close-affiliate-banner">Ã—</button>
+          <button class="ad-card__close" type="button" id="close-affiliate-banner">×</button>
           ${buttonAd.link
             ? `<a href="${escapeHtml(buttonAd.link)}" target="_blank" rel="noreferrer">
                 <img class="ad-card__media" src="${escapeHtml(buttonAd.image || '')}" alt="" />
@@ -666,17 +720,17 @@ if (page === 'video') {
         `;
         wireOfferLink(elements.banner.querySelector('a'));
         elements.banner.querySelector('#close-affiliate-banner')?.addEventListener('click', () => {
-          elements.banner.innerHTML = '<div class="ad-slot--placeholder">à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹‚à¸†à¸©à¸“à¸²</div>';
+          elements.banner.innerHTML = '<div class="ad-slot--placeholder">พื้นที่โฆษณา</div>';
         });
       } else {
-        elements.banner.innerHTML = '<div class="ad-slot--placeholder">à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹‚à¸†à¸©à¸“à¸²</div>';
+        elements.banner.innerHTML = '<div class="ad-slot--placeholder">พื้นที่โฆษณา</div>';
       }
 
       if (popupAd) {
-        elements.popupTitle.textContent = popupAd.title;
-        elements.popupMessage.textContent = popupAd.message;
+        elements.popupTitle.textContent = repairText(popupAd.title || '');
+        elements.popupMessage.textContent = repairText(popupAd.message || '');
         elements.popupLink.href = popupAd.link || '#';
-        elements.popupLink.textContent = popupAd.cta || 'à¹€à¸›à¸´à¸”à¸‚à¹‰à¸­à¹€à¸ªà¸™à¸­';
+        elements.popupLink.textContent = repairText(popupAd.cta || 'เปิดข้อเสนอ');
         elements.popupLink.style.display = popupAd.link ? 'inline-flex' : 'none';
         wireOfferLink(elements.popupLink);
       } else {
@@ -696,10 +750,9 @@ if (page === 'video') {
       }
     })
     .catch(() => {
-      elements.title.textContent = 'à¹„à¸¡à¹ˆà¸žà¸šà¸„à¸¥à¸´à¸›à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£';
+      elements.title.textContent = 'ไม่พบคลิปที่ต้องการ';
       elements.preroll.classList.add('hidden');
     });
-
 
   elements.skip.addEventListener('click', () => {
     if (elements.skip.disabled) return;

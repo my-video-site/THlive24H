@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const path = require('path');
 const fs = require('fs/promises');
 const cors = require('cors');
@@ -146,12 +146,27 @@ function slugify(value) {
   return slug || 'video';
 }
 
+function repairText(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  if (!/[\u00C3\u00E0\u00E2]/.test(text)) {
+    return text;
+  }
+
+  try {
+    const decoded = Buffer.from(text, 'latin1').toString('utf8').trim();
+    return decoded || text;
+  } catch (error) {
+    return text;
+  }
+}
+
 function getPublicVideoId(video) {
   return String(video?.videoId || video?.id || '').trim();
 }
 
 function cleanVideoTitle(value) {
-  let title = String(value || '')
+  let title = repairText(value)
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -247,8 +262,8 @@ function injectHomeSeo(html, seo) {
 }
 
 function buildVideoSeo(video, req) {
-  const title = `${String(video.title || 'ดูคลิป').trim()} | THlive24H`;
-  const description = `ดูคลิป ${String(video.title || '').trim()} บน THlive24H พร้อมหน้าเล่นคลิปที่เปิดง่ายบนมือถือและเดสก์ท็อป`;
+  const title = `${String(video.title || 'à¸”à¸¹à¸„à¸¥à¸´à¸›').trim()} | THlive24H`;
+  const description = `à¸”à¸¹à¸„à¸¥à¸´à¸› ${String(video.title || '').trim()} à¸šà¸™ THlive24H à¸žà¸£à¹‰à¸­à¸¡à¸«à¸™à¹‰à¸²à¹€à¸¥à¹ˆà¸™à¸„à¸¥à¸´à¸›à¸—à¸µà¹ˆà¹€à¸›à¸´à¸”à¸‡à¹ˆà¸²à¸¢à¸šà¸™à¸¡à¸·à¸­à¸–à¸·à¸­à¹à¸¥à¸°à¹€à¸”à¸ªà¸à¹Œà¸—à¹‡à¸­à¸›`;
   const canonical = buildVideoPageUrl(req, video.id);
   const image = String(video.thumbnail || `${getBaseUrl(req)}/favicon.ico`).trim();
 
@@ -332,23 +347,24 @@ async function deleteUploadedAssets(ad) {
 
 function deriveVideoCategory(video) {
   if (video.category) {
-    return String(video.category).trim();
+    return repairText(video.category).trim();
   }
 
   if (Array.isArray(video.tags) && video.tags.length) {
-    return String(video.tags[0]).trim();
+    return repairText(video.tags[0]).trim();
   }
 
-  const source = String(video.source || '').toLowerCase();
-  const sourceLabels = {
-    youtube: 'YouTube',
-    vimeo: 'Vimeo',
-    dailymotion: 'Dailymotion',
-    demo: 'เดโม',
-    python: 'Python Bridge'
-  };
+  const title = cleanVideoTitle(video.title || '').toLowerCase();
+  const groups = [
+    { name: 'ไลฟ์สด', keywords: ['ไลฟ์สด', 'ไลฟ์', 'live'] },
+    { name: 'คู่รัก', keywords: ['คู่รัก', 'คู่เทพ', 'couple', 'แฟน'] },
+    { name: 'สาวแว่น', keywords: ['สาวแว่น', 'แว่น'] },
+    { name: 'นางแบบ', keywords: ['นางแบบ', 'model'] },
+    { name: 'คลิปใหม่', keywords: ['ล่าสุด', 'มาใหม่', 'new'] }
+  ];
 
-  return sourceLabels[source] || 'ทั่วไป';
+  const matched = groups.find((group) => group.keywords.some((keyword) => title.includes(keyword)));
+  return matched ? matched.name : 'ทั่วไป';
 }
 
 function normalizeVideoRecord(video, index = 0) {
@@ -546,7 +562,7 @@ app.get('/videos/categories', async (req, res) => {
   const counts = new Map();
 
   videos.forEach((video) => {
-    const category = String(video.category || 'ทั่วไป');
+    const category = String(video.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›');
     counts.set(category, (counts.get(category) || 0) + 1);
   });
 
@@ -855,7 +871,7 @@ app.get('/feed.xml', async (req, res) => {
   const items = videos.slice(0, 50).map((video) => {
     const url = buildVideoPageUrl(req, video);
     const title = escapeHtml(video.title || 'THlive24H');
-    const description = escapeHtml(`ดูคลิป ${video.title || ''} บน THlive24H`);
+    const description = escapeHtml(`à¸”à¸¹à¸„à¸¥à¸´à¸› ${video.title || ''} à¸šà¸™ THlive24H`);
     const pubDate = new Date(video.updatedAt || video.createdAt || Date.now()).toUTCString();
     return `
       <item>
@@ -873,7 +889,7 @@ app.get('/feed.xml', async (req, res) => {
   <channel>
     <title>THlive24H</title>
     <link>${baseUrl}/</link>
-    <description>อัปเดตคลิปล่าสุดจาก THlive24H</description>
+    <description>à¸­à¸±à¸›à¹€à¸”à¸•à¸„à¸¥à¸´à¸›à¸¥à¹ˆà¸²à¸ªà¸¸à¸”à¸ˆà¸²à¸ THlive24H</description>
     ${items.join('\n')}
   </channel>
 </rss>`);
@@ -917,3 +933,4 @@ app.listen(PORT, async () => {
   await updateTopVideos().catch(() => {});
   console.log(`StreamBoost AI Pro running on http://localhost:${PORT}`);
 });
+
