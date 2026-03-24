@@ -331,6 +331,11 @@ select {
   display: none !important;
 }
 
+#player-open-button,
+#player-source-link {
+  display: none !important;
+}
+
 .stats-row,
 .admin-grid,
 .content-columns {

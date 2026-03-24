@@ -649,6 +649,7 @@ if (page === 'video') {
     elements.note.classList.remove('hidden');
     elements.note.textContent = 'ถ้า player ต้นทางบล็อกการเล่นในหน้าเว็บนี้ ให้ลองโหลดใหม่ หรือกดเปิดหน้าเล่นคลิป/เปิดแท็บใหม่';
 
+    elements.note.textContent = 'ถ้า player ต้นทางไม่เล่น ให้กดลองโหลดใหม่';
     elements.sourceLinkWrap.classList.remove('hidden');
   }
 
@@ -737,17 +738,6 @@ if (page === 'video') {
   elements.retryButton?.addEventListener('click', () => {
     if (!activeEmbedUrl) return;
     resetEmbeddedFrame(activeEmbedUrl);
-  });
-
-  elements.openButton?.addEventListener('click', () => {
-    if (!activeSourceUrl) return;
-    trackClick();
-    window.location.href = activeSourceUrl;
-  });
-
-  elements.sourceLink?.addEventListener('click', () => {
-    if (!activeSourceUrl) return;
-    trackClick();
   });
 
   elements.skip.addEventListener('click', () => {
