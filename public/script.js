@@ -649,15 +649,7 @@ if (page === 'video') {
     elements.note.classList.remove('hidden');
     elements.note.textContent = 'ถ้า player ต้นทางบล็อกการเล่นในหน้าเว็บนี้ ให้ลองโหลดใหม่ หรือกดเปิดหน้าเล่นคลิป/เปิดแท็บใหม่';
 
-    if (activeSourceUrl) {
-      elements.openButton.disabled = false;
-      elements.sourceLink.href = activeSourceUrl;
-      elements.sourceLinkWrap.classList.remove('hidden');
-    } else {
-      elements.openButton.disabled = true;
-      elements.sourceLink.removeAttribute('href');
-      elements.sourceLinkWrap.classList.add('hidden');
-    }
+    elements.sourceLinkWrap.classList.remove('hidden');
   }
 
   function renderRelated(items) {
