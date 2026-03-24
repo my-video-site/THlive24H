@@ -37,20 +37,22 @@
           <section class="player-section player-section--portal">
             <div class="preroll" id="preroll-overlay">
               <div class="preroll__card">
-                <button class="popup__close" id="preroll-close-button">x</button>
+                <button class="popup__close" id="preroll-close-button" type="button">x</button>
                 <p class="eyebrow">โฆษณาก่อนเล่น</p>
                 <div class="preroll__media" id="preroll-media-wrap"></div>
                 <h2 id="preroll-title"></h2>
                 <p id="preroll-message"></p>
                 <div class="hero-banner__actions">
                   <a id="preroll-link" class="button button--primary" target="_blank" rel="noreferrer">เปิดข้อเสนอ</a>
-                  <button id="skip-preroll" class="button button--ghost" disabled>ข้ามได้ใน 5 วินาที</button>
+                  <button id="skip-preroll" class="button button--ghost" type="button" disabled>ข้ามได้ใน 5 วินาที</button>
                 </div>
               </div>
             </div>
+
             <div class="artplayer-shell hidden" id="artplayer-shell">
               <div id="artplayer-app" class="artplayer-app"></div>
             </div>
+
             <iframe
               id="video-frame"
               class="player-frame hidden"
@@ -59,12 +61,6 @@
               allowfullscreen
               loading="eager"
             ></iframe>
-            <p class="player-note hidden" id="player-note"></p>
-            <div class="player-fallback hidden" id="player-fallback">
-              <button class="button button--ghost" id="player-retry-button" type="button">ลองโหลดใหม่</button>
-              <button class="button button--ghost" id="player-open-button" type="button">เปิดหน้าเล่นคลิป</button>
-              <a class="button button--primary" id="player-source-link" target="_blank" rel="noreferrer">เปิดคลิปจากต้นทาง</a>
-            </div>
           </section>
 
           <div class="ad-strip">
@@ -81,7 +77,7 @@
             </p>
 
             <div class="affiliate-banner" id="affiliate-banner"></div>
-            <button id="popup-trigger" class="button button--ghost">ดูข้อเสนอเพิ่มเติม</button>
+            <button id="popup-trigger" class="button button--ghost" type="button">ดูข้อเสนอเพิ่มเติม</button>
           </article>
         </section>
 
@@ -110,7 +106,7 @@
     <div class="popup hidden" id="offer-popup">
       <div class="popup__backdrop" id="popup-close-backdrop"></div>
       <div class="popup__card">
-        <button class="popup__close" id="popup-close-button">x</button>
+        <button class="popup__close" id="popup-close-button" type="button">x</button>
         <p class="eyebrow">ข้อเสนอแนะนำ</p>
         <h3 id="popup-title"></h3>
         <p id="popup-message"></p>

@@ -1,15 +1,15 @@
-const page = document.body.dataset.page;
+﻿const page = document.body.dataset.page;
 
 async function request(url, options = {}) {
   let response;
   try {
     response = await fetch(url, options);
   } catch (error) {
-    throw new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาเปิด node server/server.js ก่อน');
+    throw new Error('à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¹€à¸‹à¸´à¸£à¹Œà¸Ÿà¹€à¸§à¸­à¸£à¹Œà¹„à¸¡à¹ˆà¹„à¸”à¹‰ à¸à¸£à¸¸à¸“à¸²à¹€à¸›à¸´à¸” node server/server.js à¸à¹ˆà¸­à¸™');
   }
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
-    throw new Error(payload.error || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
+    throw new Error(payload.error || 'à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”à¹ƒà¸™à¸à¸²à¸£à¹‚à¸«à¸¥à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥');
   }
   return response.json();
 }
@@ -80,7 +80,7 @@ function buildThumbnailUrl(video) {
 }
 
 function formatViews(value) {
-  return `${Number(value || 0).toLocaleString('th-TH')} ครั้ง`;
+  return `${Number(value || 0).toLocaleString('th-TH')} à¸„à¸£à¸±à¹‰à¸‡`;
 }
 
 function createSlotRenderer(slotSelector = '.ad-slot[data-slot]') {
@@ -92,7 +92,7 @@ function createSlotRenderer(slotSelector = '.ad-slot[data-slot]') {
   function fillAdPlaceholders() {
     slotMap.forEach((slot) => {
       if (!slot.innerHTML.trim()) {
-        slot.innerHTML = '<div class="ad-slot--placeholder">พื้นที่โฆษณา</div>';
+        slot.innerHTML = '<div class="ad-slot--placeholder">à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹‚à¸†à¸©à¸“à¸²</div>';
       }
     });
   }
@@ -100,7 +100,7 @@ function createSlotRenderer(slotSelector = '.ad-slot[data-slot]') {
   function closeAdContainer(button) {
     const host = button.closest('.ad-card')?.parentElement;
     if (host) {
-      host.innerHTML = '<div class="ad-slot--placeholder">พื้นที่โฆษณา</div>';
+      host.innerHTML = '<div class="ad-slot--placeholder">à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹‚à¸†à¸©à¸“à¸²</div>';
     }
   }
 
@@ -111,7 +111,7 @@ function createSlotRenderer(slotSelector = '.ad-slot[data-slot]') {
 
     return `
       <article class="ad-card">
-        <button class="ad-card__close" type="button" data-close-ad>×</button>
+        <button class="ad-card__close" type="button" data-close-ad>Ã—</button>
         ${String(ad.link || '').trim()
           ? `<a class="ad-card__link" href="${escapeHtml(ad.link)}" target="_blank" rel="noreferrer" data-ad-click>${imageHtml}</a>`
           : `<div class="ad-card__link">${imageHtml}</div>`}
@@ -139,7 +139,7 @@ function createSlotRenderer(slotSelector = '.ad-slot[data-slot]') {
       });
 
       slot.querySelector('.ad-card__media')?.addEventListener('error', () => {
-        slot.innerHTML = '<div class="ad-slot--placeholder">พื้นที่โฆษณา</div>';
+        slot.innerHTML = '<div class="ad-slot--placeholder">à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹‚à¸†à¸©à¸“à¸²</div>';
       });
     });
 
@@ -190,12 +190,12 @@ function buildVideoCard(template, video) {
   const rankNode = node.querySelector('[data-video-rank]');
 
   if (rankNode) {
-    rankNode.textContent = video.rank ? `อันดับ ${video.rank}` : 'มาใหม่';
+    rankNode.textContent = video.rank ? `à¸­à¸±à¸™à¸”à¸±à¸š ${video.rank}` : 'à¸¡à¸²à¹ƒà¸«à¸¡à¹ˆ';
   }
 
   node.querySelector('[data-video-source]').textContent = String(video.source || '').toUpperCase();
   if (categoryNode) {
-    categoryNode.textContent = video.category || 'ทั่วไป';
+    categoryNode.textContent = video.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›';
   }
   if (viewsNode) {
     viewsNode.textContent = formatViews(video.displayViews || video.views || 0);
@@ -251,22 +251,22 @@ if (page === 'index') {
   sourceFilter.value = state.source;
 
   function renderStats(items) {
-    const categories = new Set(items.map((item) => item.category || 'ทั่วไป')).size;
+    const categories = new Set(items.map((item) => item.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›')).size;
 
     statsRow.innerHTML = `
-      <div class="metric-card"><span>คลิปที่พบ</span><strong>${state.total}</strong></div>
-      <div class="metric-card"><span>หมวดหมู่</span><strong>${categories}</strong></div>
-      <div class="metric-card"><span>แหล่งที่มา</span><strong>${sources}</strong></div>
+      <div class="metric-card"><span>à¸„à¸¥à¸´à¸›à¸—à¸µà¹ˆà¸žà¸š</span><strong>${state.total}</strong></div>
+      <div class="metric-card"><span>à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ</span><strong>${categories}</strong></div>
+      <div class="metric-card"><span>à¹à¸«à¸¥à¹ˆà¸‡à¸—à¸µà¹ˆà¸¡à¸²</span><strong>${sources}</strong></div>
     `;
   }
 
   renderStats = function (items) {
-    const categories = new Set(items.map((item) => item.category || 'ทั่วไป')).size;
+    const categories = new Set(items.map((item) => item.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›')).size;
 
     statsRow.innerHTML = `
-      <div class="metric-card"><span>คลิปที่พบ</span><strong>${state.total}</strong></div>
-      <div class="metric-card"><span>หมวดหมู่</span><strong>${categories}</strong></div>
-      <div class="metric-card"><span>แสดงในหน้านี้</span><strong>${items.length}</strong></div>
+      <div class="metric-card"><span>à¸„à¸¥à¸´à¸›à¸—à¸µà¹ˆà¸žà¸š</span><strong>${state.total}</strong></div>
+      <div class="metric-card"><span>à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ</span><strong>${categories}</strong></div>
+      <div class="metric-card"><span>à¹à¸ªà¸”à¸‡à¹ƒà¸™à¸«à¸™à¹‰à¸²à¸™à¸µà¹‰</span><strong>${items.length}</strong></div>
     `;
   };
 
@@ -275,12 +275,12 @@ if (page === 'index') {
 
     const info = document.createElement('div');
     info.className = 'pagination__info';
-    info.textContent = `หน้า ${state.page} / ${state.totalPages} , ทั้งหมด ${state.total} คลิป`;
+    info.textContent = `à¸«à¸™à¹‰à¸² ${state.page} / ${state.totalPages} , à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸” ${state.total} à¸„à¸¥à¸´à¸›`;
     pagination.appendChild(info);
 
     const prev = document.createElement('button');
     prev.className = 'button button--ghost';
-    prev.textContent = 'ก่อนหน้า';
+    prev.textContent = 'à¸à¹ˆà¸­à¸™à¸«à¸™à¹‰à¸²';
     prev.disabled = state.page <= 1;
     prev.addEventListener('click', () => {
       if (state.page > 1) {
@@ -307,7 +307,7 @@ if (page === 'index') {
 
     const next = document.createElement('button');
     next.className = 'button button--ghost';
-    next.textContent = 'ถัดไป';
+    next.textContent = 'à¸–à¸±à¸”à¹„à¸›';
     next.disabled = state.page >= state.totalPages;
     next.addEventListener('click', () => {
       if (state.page < state.totalPages) {
@@ -320,7 +320,7 @@ if (page === 'index') {
   }
 
   function renderCategoryFilter() {
-    categoryFilter.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
+    categoryFilter.innerHTML = '<option value="">à¸—à¸¸à¸à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ</option>';
     state.categories.forEach((item) => {
       const option = document.createElement('option');
       option.value = item.name;
@@ -336,7 +336,7 @@ if (page === 'index') {
     categoryPills.innerHTML = '';
     const allButton = document.createElement('button');
     allButton.className = `category-pill${!state.category ? ' is-active' : ''}`;
-    allButton.textContent = 'ทั้งหมด';
+    allButton.textContent = 'à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”';
     allButton.addEventListener('click', () => {
       state.category = '';
       categoryFilter.value = '';
@@ -367,16 +367,16 @@ if (page === 'index') {
       .sort((a, b) => (b.displayViews || 0) - (a.displayViews || 0))
       .slice(0, 8);
 
-    renderCardList(latestGrid, template, latest, 'ยังไม่มีคลิปใหม่');
-    renderCardList(popularGrid, template, popular, 'ยังไม่มีคลิปยอดนิยม');
+    renderCardList(latestGrid, template, latest, 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¸¥à¸´à¸›à¹ƒà¸«à¸¡à¹ˆ');
+    renderCardList(popularGrid, template, popular, 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¸¥à¸´à¸›à¸¢à¸­à¸”à¸™à¸´à¸¢à¸¡');
     const activeCategory = state.category || state.categories[0]?.name || '';
     const groupItems = activeCategory
       ? state.overviewItems
-          .filter((video) => String(video.category || 'ทั่วไป') === activeCategory)
+          .filter((video) => String(video.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›') === activeCategory)
           .slice(0, 8)
       : state.overviewItems.slice(0, 8);
 
-    renderCardList(categoryTabGrid, template, groupItems, 'ยังไม่มีคลิปในหมวดนี้');
+    renderCardList(categoryTabGrid, template, groupItems, 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¸¥à¸´à¸›à¹ƒà¸™à¸«à¸¡à¸§à¸”à¸™à¸µà¹‰');
   }
 
   async function loadOverview() {
@@ -396,7 +396,7 @@ if (page === 'index') {
     if (state.loading) return;
     state.loading = true;
     loadingIndicator.style.display = 'block';
-    loadingIndicator.textContent = 'กำลังโหลดคลิป...';
+    loadingIndicator.textContent = 'à¸à¸³à¸¥à¸±à¸‡à¹‚à¸«à¸¥à¸”à¸„à¸¥à¸´à¸›...';
 
     try {
       const data = await request(
@@ -407,7 +407,7 @@ if (page === 'index') {
       state.total = data.total;
       state.totalPages = data.totalPages || 1;
 
-      renderCardList(grid, template, data.items, 'ยังไม่พบคลิปที่ตรงกับตัวกรองนี้');
+      renderCardList(grid, template, data.items, 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸žà¸šà¸„à¸¥à¸´à¸›à¸—à¸µà¹ˆà¸•à¸£à¸‡à¸à¸±à¸šà¸•à¸±à¸§à¸à¸£à¸­à¸‡à¸™à¸µà¹‰');
       renderStats(state.loaded);
       renderPagination();
     } catch (error) {
@@ -463,11 +463,6 @@ if (page === 'video') {
     artShell: document.getElementById('artplayer-shell'),
     artContainer: document.getElementById('artplayer-app'),
     frame: document.getElementById('video-frame'),
-    note: document.getElementById('player-note'),
-    sourceLinkWrap: document.getElementById('player-fallback'),
-    retryButton: document.getElementById('player-retry-button'),
-    openButton: document.getElementById('player-open-button'),
-    sourceLink: document.getElementById('player-source-link'),
     source: document.getElementById('video-source'),
     category: document.getElementById('video-category'),
     title: document.getElementById('video-title'),
@@ -493,7 +488,6 @@ if (page === 'video') {
   let prerollCountdown = 5;
   let prerollTimer = null;
   let activeEmbedUrl = '';
-  let activeSourceUrl = '';
 
   function isDirectVideoUrl(url) {
     return /\.(mp4|webm|ogg|m3u8)(\?.*)?$/i.test(String(url || '').trim());
@@ -504,10 +498,6 @@ if (page === 'video') {
       artplayerInstance.destroy(false);
     }
     artplayerInstance = null;
-  }
-
-  function getPlaybackSource(video) {
-    return String(video?.url || video?.embedUrl || '').trim();
   }
 
   function resetEmbeddedFrame(embedUrl) {
@@ -527,11 +517,8 @@ if (page === 'video') {
 
     destroyPlayer();
     activeEmbedUrl = String(video.embedUrl || candidateUrl || '').trim();
-    activeSourceUrl = getPlaybackSource(video);
     elements.frame.classList.add('hidden');
     elements.artShell.classList.remove('hidden');
-    elements.note.classList.add('hidden');
-    elements.sourceLinkWrap.classList.add('hidden');
     elements.artContainer.innerHTML = '';
 
     artplayerInstance = new window.Artplayer({
@@ -550,21 +537,12 @@ if (page === 'video') {
 
   function mountFallbackFrame(video) {
     destroyPlayer();
+    activeEmbedUrl = String(video.embedUrl || '').trim();
     elements.artShell.classList.add('hidden');
     elements.frame.classList.remove('hidden');
-    elements.frame.src = video.embedUrl;
-    elements.note.classList.remove('hidden');
-    elements.note.textContent = 'ถ้าเบราว์เซอร์มือถือเล่นผ่านหน้า embed ไม่ได้ ให้กดปุ่มเปิดคลิปจากต้นทางด้านล่าง';
-    const sourceUrl = video.url || video.embedUrl;
-    if (sourceUrl) {
-      elements.sourceLink.href = sourceUrl;
-      elements.sourceLinkWrap.classList.remove('hidden');
-    } else {
-      elements.sourceLinkWrap.classList.add('hidden');
-    }
-    elements.note.textContent = 'ถ้าเบราว์เซอร์มือถือเล่นผ่านหน้า embed ไม่ได้ ให้กดปุ่มเปิดคลิปจากต้นทางด้านล่าง';
-    elements.note.textContent = 'ระบบกำลังใช้โหมดดูผ่านหน้า embed อัตโนมัติ';
+    resetEmbeddedFrame(activeEmbedUrl);
   }
+
 
   function trackClick() {
     return fetch(`/videos/${id}/click`, { method: 'POST' }).catch(() => {});
@@ -586,7 +564,7 @@ if (page === 'video') {
   function showPreroll(ad) {
     prerollCountdown = 5;
     elements.skip.disabled = true;
-    elements.skip.textContent = `ข้ามได้ใน ${prerollCountdown} วินาที`;
+    elements.skip.textContent = `à¸‚à¹‰à¸²à¸¡à¹„à¸”à¹‰à¹ƒà¸™ ${prerollCountdown} à¸§à¸´à¸™à¸²à¸—à¸µ`;
     elements.preroll.querySelector('.preroll__card').classList.add('preroll__titleless');
     elements.prerollTitle.textContent = ad.title || '';
     elements.prerollMessage.textContent = ad.message || '';
@@ -618,14 +596,14 @@ if (page === 'video') {
     prerollTimer = setInterval(() => {
       prerollCountdown -= 1;
       if (prerollCountdown > 0) {
-        elements.skip.textContent = `ข้ามได้ใน ${prerollCountdown} วินาที`;
+        elements.skip.textContent = `à¸‚à¹‰à¸²à¸¡à¹„à¸”à¹‰à¹ƒà¸™ ${prerollCountdown} à¸§à¸´à¸™à¸²à¸—à¸µ`;
         return;
       }
 
       clearInterval(prerollTimer);
       prerollTimer = null;
       elements.skip.disabled = false;
-      elements.skip.textContent = 'ข้าม';
+      elements.skip.textContent = 'à¸‚à¹‰à¸²à¸¡';
     }, 1000);
   }
 
@@ -639,19 +617,6 @@ if (page === 'video') {
     showPreroll(prerollAds[prerollIndex]);
   }
 
-  function mountFallbackFrame(video) {
-    destroyPlayer();
-    activeEmbedUrl = String(video.embedUrl || '').trim();
-    activeSourceUrl = getPlaybackSource(video);
-    elements.artShell.classList.add('hidden');
-    elements.frame.classList.remove('hidden');
-    resetEmbeddedFrame(activeEmbedUrl);
-    elements.note.classList.remove('hidden');
-    elements.note.textContent = 'ถ้า player ต้นทางบล็อกการเล่นในหน้าเว็บนี้ ให้ลองโหลดใหม่ หรือกดเปิดหน้าเล่นคลิป/เปิดแท็บใหม่';
-
-    elements.note.textContent = 'ถ้า player ต้นทางไม่เล่น ให้กดลองโหลดใหม่';
-    elements.sourceLinkWrap.classList.remove('hidden');
-  }
 
   function renderRelated(items) {
     elements.related.innerHTML = items
@@ -659,7 +624,7 @@ if (page === 'video') {
         (item) => `
           <a class="related-item" href="${buildWatchUrl(item)}">
             <span>${escapeHtml(item.title)}</span>
-            <strong>${escapeHtml(item.category || 'ทั่วไป')}</strong>
+            <strong>${escapeHtml(item.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›')}</strong>
           </a>
         `
       )
@@ -679,10 +644,10 @@ if (page === 'video') {
       if (!usedArtplayer) {
         mountFallbackFrame(video);
       }
-      elements.source.textContent = `แหล่งที่มา: ${String(video.source || '').toUpperCase()}`;
-      elements.category.textContent = `หมวดหมู่: ${video.category || 'ทั่วไป'}`;
+      elements.source.textContent = `à¹à¸«à¸¥à¹ˆà¸‡à¸—à¸µà¹ˆà¸¡à¸²: ${String(video.source || '').toUpperCase()}`;
+      elements.category.textContent = `à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ: ${video.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›'}`;
       elements.title.textContent = video.title;
-      elements.views.textContent = `ยอดดู ${formatViews(video.displayViews || 0)}`;
+      elements.views.textContent = `à¸¢à¸­à¸”à¸”à¸¹ ${formatViews(video.displayViews || 0)}`;
       renderRelated(related);
 
       const buttonAd = video.affiliateSlots?.button;
@@ -690,7 +655,7 @@ if (page === 'video') {
 
       if (buttonAd) {
         elements.banner.innerHTML = `
-          <button class="ad-card__close" type="button" id="close-affiliate-banner">×</button>
+          <button class="ad-card__close" type="button" id="close-affiliate-banner">Ã—</button>
           ${buttonAd.link
             ? `<a href="${escapeHtml(buttonAd.link)}" target="_blank" rel="noreferrer">
                 <img class="ad-card__media" src="${escapeHtml(buttonAd.image || '')}" alt="" />
@@ -701,17 +666,17 @@ if (page === 'video') {
         `;
         wireOfferLink(elements.banner.querySelector('a'));
         elements.banner.querySelector('#close-affiliate-banner')?.addEventListener('click', () => {
-          elements.banner.innerHTML = '<div class="ad-slot--placeholder">พื้นที่โฆษณา</div>';
+          elements.banner.innerHTML = '<div class="ad-slot--placeholder">à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹‚à¸†à¸©à¸“à¸²</div>';
         });
       } else {
-        elements.banner.innerHTML = '<div class="ad-slot--placeholder">พื้นที่โฆษณา</div>';
+        elements.banner.innerHTML = '<div class="ad-slot--placeholder">à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹‚à¸†à¸©à¸“à¸²</div>';
       }
 
       if (popupAd) {
         elements.popupTitle.textContent = popupAd.title;
         elements.popupMessage.textContent = popupAd.message;
         elements.popupLink.href = popupAd.link || '#';
-        elements.popupLink.textContent = popupAd.cta || 'เปิดข้อเสนอ';
+        elements.popupLink.textContent = popupAd.cta || 'à¹€à¸›à¸´à¸”à¸‚à¹‰à¸­à¹€à¸ªà¸™à¸­';
         elements.popupLink.style.display = popupAd.link ? 'inline-flex' : 'none';
         wireOfferLink(elements.popupLink);
       } else {
@@ -731,14 +696,10 @@ if (page === 'video') {
       }
     })
     .catch(() => {
-      elements.title.textContent = 'ไม่พบคลิปที่ต้องการ';
+      elements.title.textContent = 'à¹„à¸¡à¹ˆà¸žà¸šà¸„à¸¥à¸´à¸›à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£';
       elements.preroll.classList.add('hidden');
     });
 
-  elements.retryButton?.addEventListener('click', () => {
-    if (!activeEmbedUrl) return;
-    resetEmbeddedFrame(activeEmbedUrl);
-  });
 
   elements.skip.addEventListener('click', () => {
     if (elements.skip.disabled) return;
