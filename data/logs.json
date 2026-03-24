@@ -1,6 +1,30 @@
 {
   "events": [
     {
+      "id": "video.delete_all-1774328465875",
+      "type": "video.delete_all",
+      "payload": {
+        "by": "admin090"
+      },
+      "createdAt": "2026-03-24T05:01:05.875Z"
+    },
+    {
+      "id": "login.success-1774328413455",
+      "type": "login.success",
+      "payload": {
+        "username": "admin090"
+      },
+      "createdAt": "2026-03-24T05:00:13.455Z"
+    },
+    {
+      "id": "video.view-1774328338692",
+      "type": "video.view",
+      "payload": {
+        "id": "mlivevkx_9635"
+      },
+      "createdAt": "2026-03-24T04:58:58.692Z"
+    },
+    {
       "id": "ad.create-1774160729216",
       "type": "ad.create",
       "payload": {
@@ -874,79 +898,8 @@
     }
   ],
   "analytics": {
-    "views": 39,
+    "views": 40,
     "clicks": 0,
-    "topVideos": [
-      {
-        "id": "pornhub_65fbaf9240a81",
-        "title": "Massive Clit Throbbing",
-        "views": 4,
-        "clicks": 0,
-        "score": 0
-      },
-      {
-        "id": "pornhub_67d83e68dbe29",
-        "title": "WIFEY Gorgeous Blonde Hotwife Savvy Suxx Rides A Huge Cock In Front Of Fiance",
-        "views": 3,
-        "clicks": 0,
-        "score": 0
-      },
-      {
-        "id": "pornhub_666aeeea3e8db",
-        "title": "DTFSluts - Shona River shows off her natural petite tits",
-        "views": 3,
-        "clicks": 0,
-        "score": 0
-      },
-      {
-        "id": "pornhub_68541090bbd2c",
-        "title": "19 Year Old Becca Pierce Ain’t Shy After This!",
-        "views": 3,
-        "clicks": 0,
-        "score": 0
-      },
-      {
-        "id": "pornhub_69949592e7010",
-        "title": "Step Mom Caught Step Son With Boner and Helps to Cum! POV Pronebone",
-        "views": 2,
-        "clicks": 0,
-        "score": 0
-      },
-      {
-        "id": "pornhub_ph63704bf072af2",
-        "title": "April Olsen fuck BBC in front of Rich Client for Private Show",
-        "views": 2,
-        "clicks": 0,
-        "score": 0
-      },
-      {
-        "id": "pornhub_6994c977ce338",
-        "title": "Hot Petite Blonde Stepsis Fucks Crazy In Self Driving Car - Molly Little - Luke Cooper",
-        "views": 1,
-        "clicks": 0,
-        "score": 0
-      },
-      {
-        "id": "pornhub_664f8abd0eb38",
-        "title": "REALITYJUNKIES - Ryna Keeley Swaps Her Stepson With Her Best friend To Know Who Does It Better",
-        "views": 1,
-        "clicks": 0,
-        "score": 0
-      },
-      {
-        "id": "pornhub_699da6c8d54e2",
-        "title": "My Stepsis Got Scared Of My Morning Boner But Also Got Curious",
-        "views": 1,
-        "clicks": 0,
-        "score": 0
-      },
-      {
-        "id": "pornhub_6987d8911478f",
-        "title": "I fuck my stepsister when my family isn't home! Liz Mendez",
-        "views": 1,
-        "clicks": 0,
-        "score": 0
-      }
-    ]
+    "topVideos": []
   }
 }
