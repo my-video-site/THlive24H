@@ -5,13 +5,11 @@ const path = require("path");
 
 const DATA_PATH = path.join(__dirname, "../data/videos.json");
 
-const provider = (id) => `https://www.pornhub.com/embed/${id}`;
-
 // 🔥 ตั้งค่า
 const MAX_PER_ROUND = 300;
 const DELAY_BETWEEN_PAGES = 4000;
 const DELAY_BETWEEN_ROUNDS = 20000;
-const MAX_PAGES = 10;
+const MAX_PAGES = 5;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -29,90 +27,113 @@ function save(videos) {
   fs.writeFileSync(DATA_PATH, JSON.stringify(videos, null, 2));
 }
 
-async function scrapePage(page) {
+// =========================
+// 🔥 SCRAPER 1
+// =========================
+async function scrapeMlivevkx(page) {
   const url =
     page === 1
-      ? "https://www.pornhub.com/video?o=ht"
-      : `https://www.pornhub.com/video?o=ht&page=${page}`;
+      ? "https://mlivevkx.net/category/thlive/"
+      : `https://mlivevkx.net/category/thlive/page/${page}/`;
 
   try {
-    const res = await axios.get(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-      },
-      timeout: 10000
-    });
-
+    const res = await axios.get(url);
     const $ = cheerio.load(res.data);
+
     const results = [];
 
-    $(".pcVideoListItem").each((i, el) => {
+    $("article").each((i, el) => {
       const link = $(el).find("a").attr("href");
-      const title = $(el).find("a").attr("title");
+      const title = $(el).find("a").text().trim();
+      const thumbnail = $(el).find("img").attr("src");
 
-      const match = link && link.match(/viewkey=([\w\d]+)/);
-      if (!match) return;
+      if (!link) return;
 
-      const videoId = match[1];
-
-      const img = $(el).find("img").first();
-
-      // 🔥 FIX THUMBNAIL
-      let thumbnail =
-        img.attr("data-mediumthumb") ||
-        img.attr("data-path") ||
-        img.attr("data-src") ||
-        img.attr("data-original") ||
-        img.attr("src");
-
-      // ❌ กัน base64 / placeholder
-      if (!thumbnail || thumbnail.startsWith("data:")) {
-        thumbnail = "";
-      }
-
-      // 🔥 fallback (กันไม่มีรูป)
-      if (!thumbnail) {
-        thumbnail = "https://via.placeholder.com/300x200?text=No+Image";
-      }
+      const id = link.split("/").filter(Boolean).pop();
 
       results.push({
-        id: `pornhub_${videoId}`,
-        title: title || "🔥 คลิปมาแรง",
-        source: "pornhub",
-        videoId,
-        embedUrl: provider(videoId),
-        thumbnail,
+        id: `mlivevkx_${id}`,
+        title: title || "🔥 คลิป",
+        source: "mlivevkx",
+        videoId: id,
+        embedUrl: link,
+        thumbnail: thumbnail || "",
         createdAt: Date.now()
       });
     });
 
-    console.log(`📄 Page ${page}: ${results.length} clips`);
+    console.log(`📄 mlivevkx page ${page}: ${results.length}`);
     return results;
   } catch (err) {
-    console.log(`❌ Page ${page} error:`, err.message);
+    console.log("❌ mlivevkx error:", err.message);
     return [];
   }
 }
 
+// =========================
+// 🔥 SCRAPER 2
+// =========================
+async function scrapeMlivehub(page) {
+  const url =
+    page === 1
+      ? "https://mlivehub3.com/category/%E0%B8%84%E0%B8%A5%E0%B8%B4%E0%B8%9B%E0%B8%AB%E0%B8%A5%E0%B8%B8%E0%B8%94-thlive/"
+      : `https://mlivehub3.com/category/%E0%B8%84%E0%B8%A5%E0%B8%B4%E0%B8%9B%E0%B8%AB%E0%B8%A5%E0%B8%B8%E0%B8%94-thlive/page/${page}/`;
+
+  try {
+    const res = await axios.get(url);
+    const $ = cheerio.load(res.data);
+
+    const results = [];
+
+    $("article").each((i, el) => {
+      const link = $(el).find("a").attr("href");
+      const title = $(el).find("a").text().trim();
+      const thumbnail = $(el).find("img").attr("src");
+
+      if (!link) return;
+
+      const id = link.split("/").filter(Boolean).pop();
+
+      results.push({
+        id: `mlivehub_${id}`,
+        title: title || "🔥 คลิป",
+        source: "mlivehub",
+        videoId: id,
+        embedUrl: link,
+        thumbnail: thumbnail || "",
+        createdAt: Date.now()
+      });
+    });
+
+    console.log(`📄 mlivehub page ${page}: ${results.length}`);
+    return results;
+  } catch (err) {
+    console.log("❌ mlivehub error:", err.message);
+    return [];
+  }
+}
+
+// =========================
+// 🔥 LOOP หลัก
+// =========================
 async function runLoop() {
   while (true) {
     console.log("🚀 Start scraping round...");
 
     let collected = [];
-    let page = 1;
 
-    while (collected.length < MAX_PER_ROUND && page <= MAX_PAGES) {
-      const data = await scrapePage(page);
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const a = await scrapeMlivevkx(page);
+      const b = await scrapeMlivehub(page);
 
-      collected.push(...data);
-      page++;
+      collected.push(...a, ...b);
+
+      if (collected.length >= MAX_PER_ROUND) break;
 
       await sleep(DELAY_BETWEEN_PAGES);
     }
 
     const old = loadOld();
-
     const map = new Map();
 
     [...collected, ...old].forEach((v) => {
